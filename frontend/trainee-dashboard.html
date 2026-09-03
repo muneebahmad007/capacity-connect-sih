@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="CAPACITY CONNECT - Trainee Learning & Competency Dashboard. Track skills, analyze skill gaps, enroll in recommended courses, connect with trainers, and reassess growth.">
+  <title>Trainee Dashboard | CAPACITY CONNECT</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800;900&display=swap" rel="stylesheet">
+
+  <!-- Core & Dashboard CSS -->
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body class="dashboard-page">
+
+  <!-- =========================================================================
+       DASHBOARD STICKY TOP NAVIGATION BAR
+       ========================================================================= -->
+  <header class="dash-header">
+    <div class="container dash-header-container">
+      <!-- Top Left: Branding identical to Landing Page -->
+      <a href="index.html" class="dash-brand" aria-label="CAPACITY CONNECT Home">
+        <div class="logo-icon">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+          </svg>
+        </div>
+        <span>CAPACITY <span class="text-gradient">CONNECT</span></span>
+      </a>
+
+      <!-- Top Center: Modern Search Bar -->
+      <div class="dash-search-wrap">
+        <div class="dash-search-box">
+          <svg class="dash-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input 
+            type="text" 
+            id="dashSearchInput" 
+            class="dash-search-input" 
+            placeholder="Search courses, trainers, skills..." 
+            aria-label="Search courses, trainers, skills">
+        </div>
+      </div>
+
+      <!-- Top Right: Notifications & Trainee Profile Dropdown -->
+      <div class="dash-user-controls">
+        <button class="dash-notification-btn" title="Notifications" onclick="showToast('You have 2 pending competency updates & 1 upcoming assessment.', 'info');">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+          </svg>
+          <span class="dash-notif-dot"></span>
+        </button>
+
+        <div class="dash-profile-menu-wrap">
+          <div class="dash-profile-trigger" id="profileTrigger" tabindex="0" role="button" aria-haspopup="true" aria-expanded="false">
+            <div class="dash-avatar-circle">MA</div>
+            <div class="dash-user-meta">
+              <span class="dash-user-name">Muneeb Ahmad</span>
+              <span class="dash-user-role-badge">TRAINEE</span>
+            </div>
+            <svg class="dash-dropdown-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </div>
+
+          <!-- Dropdown Menu -->
+          <div class="dash-profile-dropdown" id="profileDropdown" role="menu">
+            <div class="dash-dropdown-item" role="menuitem" onclick="handleOpenProfileModal();">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+              Profile
+            </div>
+            <div class="dash-dropdown-item" role="menuitem" onclick="handleOpenSettingsModal();">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+              Settings
+            </div>
+            <a href="login.html" class="dash-dropdown-item logout" role="menuitem">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+              Logout
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- =========================================================================
+       MAIN DASHBOARD BODY
+       ========================================================================= -->
+  <main class="dashboard-main">
+    <div class="container">
+
+      <!-- Trainee Welcome Greeting -->
+      <div class="dash-welcome-banner">
+        <div class="dash-welcome-text">
+          <h1>Welcome Back, <span class="text-gradient">Muneeb</span> 👋</h1>
+          <p>Here is your competency tracking overview and personalized learning roadmap.</p>
+        </div>
+        <div class="dash-status-pills">
+          <span class="dash-pill active">● Live Trainee Session</span>
+          <span class="dash-pill">Track: AI &amp; Data Science</span>
+        </div>
+      </div>
+
+      <!-- =====================================================================
+           SECTION 1 — REFINED OVERVIEW (4 High-Impact Metric Cards)
+           ===================================================================== -->
+      <section class="dash-section" id="overview-section" data-searchable>
+        <div class="dash-section-header">
+          <div>
+            <h2 class="dash-section-title">
+              <span class="section-tag-dot"></span>
+              Overview
+            </h2>
+            <p class="dash-section-subtitle">Real-time learning analytics and performance indicators</p>
+          </div>
+        </div>
+
+        <div class="metrics-grid-4">
+          <!-- Card 1: Total Courses -->
+          <div class="metric-card" data-searchable>
+            <div class="metric-icon-wrap metric-icon-blue">📚</div>
+            <div class="metric-info">
+              <span class="metric-label">Total Courses</span>
+              <div class="metric-val-row">
+                <h3 class="metric-number">12</h3>
+                <span class="metric-pill-sub">Enrolled</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 2: Completed Courses -->
+          <div class="metric-card" data-searchable>
+            <div class="metric-icon-wrap metric-icon-emerald">✓</div>
+            <div class="metric-info">
+              <span class="metric-label">Completed Courses</span>
+              <div class="metric-val-row">
+                <h3 class="metric-number">7</h3>
+                <span class="metric-pill-sub">58% Done</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 3: Average Assessment Score -->
+          <div class="metric-card" data-searchable>
+            <div class="metric-icon-wrap metric-icon-cyan">📊</div>
+            <div class="metric-info">
+              <span class="metric-label">Avg. Assessment Score</span>
+              <div class="metric-val-row">
+                <h3 class="metric-number">78%</h3>
+                <span class="metric-pill-sub">Proficient</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 4: Certificates Earned -->
+          <div class="metric-card" data-searchable>
+            <div class="metric-icon-wrap metric-icon-purple">🏆</div>
+            <div class="metric-info">
+              <span class="metric-label">Certificates Earned</span>
+              <div class="metric-val-row">
+                <h3 class="metric-number">4</h3>
+                <span class="metric-pill-sub">Verified</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =====================================================================
+           SECTION 2 — MY SKILLS
+           ===================================================================== -->
+      <section class="dash-section" id="skills-section" data-searchable>
+        <div class="dash-section-header">
+          <div>
+            <h2 class="dash-section-title">
+              <span class="section-tag-dot"></span>
+              My Skills
+            </h2>
+            <p class="dash-section-subtitle">Current evaluated proficiency levels across active domains</p>
+          </div>
+        </div>
+
+        <div class="skills-container-card">
+          <div class="skills-grid">
+            <!-- Skill 1: Programming (75%) -->
+            <div class="skill-row-item" data-searchable>
+              <div class="skill-header-meta">
+                <div class="skill-name-wrap">
+                  <div class="skill-icon-mini">💻</div>
+                  <span class="skill-title-text">Programming (Python, C++)</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <span class="comp-badge badge-strong">Strong</span>
+                  <span class="skill-val-badge">75%</span>
+                </div>
+              </div>
+              <div class="skill-progress-track">
+                <div class="skill-progress-bar prog" data-target-width="75%"></div>
+              </div>
+            </div>
+
+            <!-- Skill 2: Database (55%) -->
+            <div class="skill-row-item" data-searchable>
+              <div class="skill-header-meta">
+                <div class="skill-name-wrap">
+                  <div class="skill-icon-mini">🗄️</div>
+                  <span class="skill-title-text">Database (SQL, Schema Design)</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <span class="comp-badge badge-developing">Developing</span>
+                  <span class="skill-val-badge">55%</span>
+                </div>
+              </div>
+              <div class="skill-progress-track">
+                <div class="skill-progress-bar db" data-target-width="55%"></div>
+              </div>
+            </div>
+
+            <!-- Skill 3: AI / ML (35%) -->
+            <div class="skill-row-item" data-searchable>
+              <div class="skill-header-meta">
+                <div class="skill-name-wrap">
+                  <div class="skill-icon-mini">🤖</div>
+                  <span class="skill-title-text">AI / ML (Algorithms, Models)</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <span class="comp-badge badge-danger">Needs Improvement</span>
+                  <span class="skill-val-badge">35%</span>
+                </div>
+              </div>
+              <div class="skill-progress-track">
+                <div class="skill-progress-bar aiml" data-target-width="35%"></div>
+              </div>
+            </div>
+
+            <!-- Skill 4: Communication (80%) -->
+            <div class="skill-row-item" data-searchable>
+              <div class="skill-header-meta">
+                <div class="skill-name-wrap">
+                  <div class="skill-icon-mini">💬</div>
+                  <span class="skill-title-text">Communication &amp; Team Collaboration</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <span class="comp-badge badge-strong">Strong</span>
+                  <span class="skill-val-badge">80%</span>
+                </div>
+              </div>
+              <div class="skill-progress-track">
+                <div class="skill-progress-bar comm" data-target-width="80%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =====================================================================
+           SECTION 3 — SKILL GAP ANALYSIS (Core Flagship USP Highlight)
+           ===================================================================== -->
+      <section class="dash-section" id="skill-gap-section" data-searchable>
+        <div class="dash-section-header">
+          <div>
+            <h2 class="dash-section-title">
+              <span class="section-tag-dot" style="background: var(--accent-rose); box-shadow: 0 0 10px var(--accent-rose);"></span>
+              Skill Gap Analysis
+            </h2>
+            <p class="dash-section-subtitle">Targeted competency discrepancies mapped against industry standards</p>
+          </div>
+          <button type="button" class="btn btn-outline btn-sm" onclick="showToast('Comprehensive skill gap report exported.', 'info');">
+            Export Analysis 📊
+          </button>
+        </div>
+
+        <div class="gap-analysis-showcase">
+          <!-- Explanatory Mission Subtext -->
+          <div class="gap-explainer-text">
+            <span style="font-size: 1.2rem;">💡</span>
+            <span>CAPACITY CONNECT identifies competency gaps and recommends targeted learning opportunities to help trainees improve.</span>
+          </div>
+
+          <div class="gap-comparison-list">
+            <!-- Gap Item 1: AI / ML (Critical Gap 45%) -->
+            <div class="gap-card-item danger" data-searchable>
+              <div class="gap-item-top">
+                <div class="gap-title-group">
+                  <div class="gap-skill-icon-pill" style="background: rgba(244,63,94,0.1); border-color: rgba(244,63,94,0.3);">🤖</div>
+                  <div>
+                    <h3 class="gap-item-name">AI / ML</h3>
+                    <span class="gap-item-track-tag">Machine Learning &bull; Algorithms &bull; Neural Systems</span>
+                  </div>
+                </div>
+                <span class="gap-badge-pill danger">
+                  <span class="pulse-warning-dot"></span>
+                  Major Skill Gap
+                </span>
+              </div>
+
+              <!-- Visual Current -> Target Comparison Block -->
+              <div class="gap-visual-comparison-block">
+                <div class="gap-endpoints-row">
+                  <div class="gap-endpoint-info current">
+                    <span class="gap-endpoint-label">Current Level</span>
+                    <span class="gap-endpoint-val current-danger">35%</span>
+                  </div>
+
+                  <div class="gap-callout-center">
+                    <span>▲</span>
+                    <span>45% SKILL GAP</span>
+                  </div>
+
+                  <div class="gap-endpoint-info target">
+                    <span class="gap-endpoint-label">Target Level</span>
+                    <span class="gap-endpoint-val target-benchmark">80% 🎯</span>
+                  </div>
+                </div>
+
+                <!-- Multi-Segment Visual Gauge -->
+                <div class="gap-multi-track">
+                  <!-- Solid Current Level: 0% -> 35% -->
+                  <div class="gap-segment-current danger" style="width: 35%;"></div>
+                  <!-- Striped Skill Gap Segment: 35% -> 80% (Width 45%) -->
+                  <div class="gap-segment-bridge danger"></div>
+                  <!-- Target Milestone Line at 80% -->
+                  <div class="gap-target-milestone" title="Target Benchmark: 80%"></div>
+                </div>
+              </div>
+
+              <!-- 4-Column Metric Breakdown -->
+              <div class="gap-metrics-grid-4">
+                <div class="gap-mini-chip">
+                  <span>Current Level</span>
+                  <strong style="color: var(--accent-rose);">35%</strong>
+                </div>
+                <div class="gap-mini-chip">
+                  <span>Target Level</span>
+                  <strong style="color: var(--accent-emerald);">80%</strong>
+                </div>
+                <div class="gap-mini-chip">
+                  <span>Skill Gap</span>
+                  <strong style="color: var(--accent-rose);">45% Gap</strong>
+                </div>
+                <div class="gap-mini-chip">
+                  <span>Status</span>
+                  <strong style="color: var(--accent-rose);">Major Skill Gap</strong>
+                </div>
+              </div>
+
+              <!-- Direct Action Link -->
+              <div class="gap-action-footer">
+                <span>Identified Action: Complete foundational supervised learning &amp; search models.</span>
+                <a href="#recommended-courses-section" class="gap-action-link">
+                  View Matched Courses &rarr;
+                </a>
+              </div>
+            </div>
+
+            <!-- Gap Item 2: Database Systems (Moderate Gap 25%) -->
+            <div class="gap-card-item warning" data-searchable>
+              <div class="gap-item-top">
+                <div class="gap-title-group">
+                  <div class="gap-skill-icon-pill" style="background: rgba(245,158,11,0.1); border-color: rgba(245,158,11,0.3);">🗄️</div>
+                  <div>
+                    <h3 class="gap-item-name">Database Systems</h3>
+                    <span class="gap-item-track-tag">Relational Schemas &bull; SQL Optimization &bull; Indexing</span>
+                  </div>
+                </div>
+                <span class="gap-badge-pill warning">
+                  <span>⚠️</span>
+                  Needs Improvement
+                </span>
+              </div>
+
+              <!-- Visual Current -> Target Comparison Block -->
+              <div class="gap-visual-comparison-block">
+                <div class="gap-endpoints-row">
+                  <div class="gap-endpoint-info current">
+                    <span class="gap-endpoint-label">Current Level</span>
+                    <span class="gap-endpoint-val current-warning">55%</span>
+                  </div>
+
+                  <div class="gap-callout-center warning">
+                    <span>▲</span>
+                    <span>25% SKILL GAP</span>
+                  </div>
+
+                  <div class="gap-endpoint-info target">
+                    <span class="gap-endpoint-label">Target Level</span>
+                    <span class="gap-endpoint-val target-benchmark">80% 🎯</span>
+                  </div>
+                </div>
+
+                <!-- Multi-Segment Visual Gauge -->
+                <div class="gap-multi-track">
+                  <!-- Solid Current Level: 0% -> 55% -->
+                  <div class="gap-segment-current warning" style="width: 55%;"></div>
+                  <!-- Striped Skill Gap Segment: 55% -> 80% (Width 25%) -->
+                  <div class="gap-segment-bridge warning"></div>
+                  <!-- Target Milestone Line at 80% -->
+                  <div class="gap-target-milestone" title="Target Benchmark: 80%"></div>
+                </div>
+              </div>
+
+              <!-- 4-Column Metric Breakdown -->
+              <div class="gap-metrics-grid-4">
+                <div class="gap-mini-chip">
+                  <span>Current Level</span>
+                  <strong style="color: var(--accent-amber);">55%</strong>
+                </div>
+                <div class="gap-mini-chip">
+                  <span>Target Level</span>
+                  <strong style="color: var(--accent-emerald);">80%</strong>
+                </div>
+                <div class="gap-mini-chip">
+                  <span>Skill Gap</span>
+                  <strong style="color: var(--accent-amber);">25% Gap</strong>
+                </div>
+                <div class="gap-mini-chip">
+                  <span>Status</span>
+                  <strong style="color: var(--accent-amber);">Needs Improvement</strong>
+                </div>
+              </div>
+
+              <!-- Direct Action Link -->
+              <div class="gap-action-footer">
+                <span>Identified Action: Strengthen schema normalization &amp; query indexing execution plans.</span>
+                <a href="#recommended-courses-section" class="gap-action-link">
+                  View Matched Courses &rarr;
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =====================================================================
+           SECTION 4 — RECOMMENDED COURSES
+           ===================================================================== -->
+      <section class="dash-section" id="recommended-courses-section" data-searchable>
+        <div class="dash-section-header">
+          <div>
+            <h2 class="dash-section-title">
+              <span class="section-tag-dot"></span>
+              Recommended Courses
+            </h2>
+            <p class="dash-section-subtitle">Based on your skill gaps</p>
+          </div>
+        </div>
+
+        <div class="dash-courses-grid">
+          <!-- Course 1 -->
+          <div class="dash-course-card" data-searchable>
+            <div>
+              <span class="dash-course-tag">Skill: AI / ML</span>
+              <h3 class="dash-course-title">Introduction to Artificial Intelligence</h3>
+              <p class="dash-course-desc">
+                Master foundational AI principles, search algorithms, heuristic evaluation, and knowledge representation designed to bridge early ML gaps.
+              </p>
+            </div>
+            <div>
+              <div class="dash-course-meta-row">
+                <span>Difficulty: <strong>Beginner</strong></span>
+                <span>Duration: <strong>6 Weeks</strong></span>
+              </div>
+              <button type="button" class="btn btn-primary btn-sm" style="width: 100%;" onclick="handleCourseEnroll('course-1', this)">
+                Enroll in Course
+              </button>
+            </div>
+          </div>
+
+          <!-- Course 2 -->
+          <div class="dash-course-card" data-searchable>
+            <div>
+              <span class="dash-course-tag">Skill: AI / ML</span>
+              <h3 class="dash-course-title">Machine Learning Fundamentals</h3>
+              <p class="dash-course-desc">
+                Learn supervised learning, regression, classification, decision trees, and model evaluation techniques with hands-on Python notebooks.
+              </p>
+            </div>
+            <div>
+              <div class="dash-course-meta-row">
+                <span>Difficulty: <strong>Intermediate</strong></span>
+                <span>Duration: <strong>8 Weeks</strong></span>
+              </div>
+              <button type="button" class="btn btn-primary btn-sm" style="width: 100%;" onclick="handleCourseEnroll('course-2', this)">
+                Enroll in Course
+              </button>
+            </div>
+          </div>
+
+          <!-- Course 3 -->
+          <div class="dash-course-card" data-searchable>
+            <div>
+              <span class="dash-course-tag" style="background: rgba(6,182,212,0.12); color: var(--accent-cyan); border-color: rgba(6,182,212,0.3);">Skill: Database</span>
+              <h3 class="dash-course-title">Database Management Essentials</h3>
+              <p class="dash-course-desc">
+                Relational schema modeling, normalization, advanced SQL queries, indexing strategies, and database concurrency optimization.
+              </p>
+            </div>
+            <div>
+              <div class="dash-course-meta-row">
+                <span>Difficulty: <strong>Beginner</strong></span>
+                <span>Duration: <strong>4 Weeks</strong></span>
+              </div>
+              <button type="button" class="btn btn-primary btn-sm" style="width: 100%;" onclick="handleCourseEnroll('course-3', this)">
+                Enroll in Course
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =====================================================================
+           SECTION 5 — RECOMMENDED TRAINERS
+           ===================================================================== -->
+      <section class="dash-section" id="recommended-trainers-section" data-searchable>
+        <div class="dash-section-header">
+          <div>
+            <h2 class="dash-section-title">
+              <span class="section-tag-dot"></span>
+              Recommended Trainers
+            </h2>
+            <p class="dash-section-subtitle">Trainers matched to your learning needs</p>
+          </div>
+        </div>
+
+        <div class="dash-trainers-grid">
+          <!-- Trainer 1: Dr. Arjun Sharma -->
+          <div class="dash-trainer-card" data-searchable>
+            <div class="dash-trainer-avatar">AS</div>
+            <div class="dash-trainer-details">
+              <h3 class="dash-trainer-name">Dr. Arjun Sharma</h3>
+              <p class="dash-trainer-spec">Artificial Intelligence &amp; Machine Learning</p>
+              <div class="dash-trainer-meta">
+                <span>Experience: <strong>8 Years</strong></span>
+                <span>Rating: <strong class="rating-star">★ 4.8 / 5</strong></span>
+              </div>
+              <button type="button" class="btn btn-outline btn-sm" onclick="handleViewTrainer('trainer-1');">
+                View Profile &rarr;
+              </button>
+            </div>
+          </div>
+
+          <!-- Trainer 2: Priya Mehta -->
+          <div class="dash-trainer-card" data-searchable>
+            <div class="dash-trainer-avatar" style="background: linear-gradient(135deg, #06b6d4, #3b82f6);">PM</div>
+            <div class="dash-trainer-details">
+              <h3 class="dash-trainer-name">Priya Mehta</h3>
+              <p class="dash-trainer-spec">Database Systems &amp; Architecture</p>
+              <div class="dash-trainer-meta">
+                <span>Experience: <strong>6 Years</strong></span>
+                <span>Rating: <strong class="rating-star">★ 4.7 / 5</strong></span>
+              </div>
+              <button type="button" class="btn btn-outline btn-sm" onclick="handleViewTrainer('trainer-2');">
+                View Profile &rarr;
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =====================================================================
+           SECTION 6 — UPCOMING ASSESSMENT
+           ===================================================================== -->
+      <section class="dash-section" id="upcoming-assessment-section" data-searchable>
+        <div class="dash-section-header">
+          <div>
+            <h2 class="dash-section-title">
+              <span class="section-tag-dot" style="background: var(--accent-amber); box-shadow: 0 0 10px var(--accent-amber);"></span>
+              Upcoming Assessment
+            </h2>
+            <p class="dash-section-subtitle">Mandatory evaluation checkpoint to measure competency improvement</p>
+          </div>
+        </div>
+
+        <div class="upcoming-assessment-card" data-searchable>
+          <div class="assess-info-block">
+            <div class="assess-deadline-badge">
+              <span>⏰</span> Deadline: September 8, 2026
+            </div>
+            <h3>AI &amp; Machine Learning Fundamentals</h3>
+            <p style="color: var(--text-secondary); font-size: 0.92rem; line-height: 1.5;">
+              Diagnostic test covering neural network basics, regression models, classification loss functions, and heuristic search algorithms.
+            </p>
+            <div class="assess-spec-grid">
+              <span>Subject: <strong style="color: #fff;">Artificial Intelligence</strong></span>
+              <span>Questions: <strong style="color: #fff;">20 MCQs</strong></span>
+              <span>Duration: <strong style="color: #fff;">20 Minutes</strong></span>
+            </div>
+          </div>
+
+          <div class="assess-action-col">
+            <button type="button" class="btn btn-primary btn-lg" onclick="handleStartAssessment();">
+              Start Assessment &rarr;
+            </button>
+            <span style="font-size: 0.78rem; color: var(--text-muted);">Timed single-attempt evaluation</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- =====================================================================
+           SECTION 7 — MY CERTIFICATES
+           ===================================================================== -->
+      <section class="dash-section" id="certificates-section" data-searchable>
+        <div class="dash-section-header">
+          <div>
+            <h2 class="dash-section-title">
+              <span class="section-tag-dot" style="background: #fbbf24; box-shadow: 0 0 10px #fbbf24;"></span>
+              My Certificates
+            </h2>
+            <p class="dash-section-subtitle">Verified digital credentials earned through completed courses and assessments</p>
+          </div>
+        </div>
+
+        <div class="certificates-grid-2">
+          <!-- Cert 1: Python -->
+          <div class="cert-mini-card" data-searchable>
+            <div class="cert-icon-seal">★</div>
+            <div class="cert-mini-details">
+              <h3 class="cert-mini-name">Python Programming Fundamentals</h3>
+              <p class="cert-mini-date">Issued: August 20, 2026 &bull; Grade: 92%</p>
+              <button type="button" class="btn btn-outline btn-sm" onclick="handleViewCertificate('cert-1');">
+                View Certificate 🔍
+              </button>
+            </div>
+          </div>
+
+          <!-- Cert 2: Database -->
+          <div class="cert-mini-card" data-searchable>
+            <div class="cert-icon-seal" style="background: radial-gradient(circle, #38bdf8 0%, #0284c7 100%);">★</div>
+            <div class="cert-mini-details">
+              <h3 class="cert-mini-name">Database Essentials</h3>
+              <p class="cert-mini-date">Issued: August 15, 2026 &bull; Grade: 88%</p>
+              <button type="button" class="btn btn-outline btn-sm" onclick="handleViewCertificate('cert-2');">
+                View Certificate 🔍
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =====================================================================
+           SECTION 8 — RE-ASSESSMENT & PROGRESS
+           ===================================================================== -->
+      <section class="dash-section" id="reassessment-section" data-searchable>
+        <div class="dash-section-header">
+          <div>
+            <h2 class="dash-section-title">
+              <span class="section-tag-dot" style="background: var(--accent-emerald); box-shadow: 0 0 10px var(--accent-emerald);"></span>
+              Re-assessment &amp; Progress
+            </h2>
+            <p class="dash-section-subtitle">Re-evaluate competencies following course completions to validate closed skill gaps</p>
+          </div>
+          <button type="button" class="btn btn-primary btn-sm" onclick="handleTakeReassessment('All Available Tracks');">
+            Take Re-assessment &rarr;
+          </button>
+        </div>
+
+        <div class="reassess-dashboard-grid">
+          <!-- Reassess Card 1: AI / ML -->
+          <div class="reassess-dash-card" data-searchable>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <h3 style="font-family: var(--font-heading); font-size: 1.2rem; color: #fff;">AI / ML Competency</h3>
+              <span class="comp-badge badge-strong">Great Progress</span>
+            </div>
+
+            <div class="reassess-score-comparison">
+              <div class="score-col">
+                <p>Previous Score</p>
+                <strong style="color: var(--accent-rose);">35%</strong>
+              </div>
+              <div style="font-size: 1.4rem; color: var(--primary-light);">➔</div>
+              <div class="score-col">
+                <p>New Score</p>
+                <strong style="color: var(--accent-emerald);">68%</strong>
+              </div>
+              <div class="score-diff-badge">+33% Growth</div>
+            </div>
+
+            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 16px;">
+              Skill gap decreased from 45% to 12% following completion of recommended learning modules.
+            </p>
+
+            <button type="button" class="btn btn-outline btn-sm" style="width: 100%;" onclick="handleTakeReassessment('AI / ML');">
+              Re-assess AI / ML
+            </button>
+          </div>
+
+          <!-- Reassess Card 2: Database -->
+          <div class="reassess-dash-card" data-searchable>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <h3 style="font-family: var(--font-heading); font-size: 1.2rem; color: #fff;">Database Systems</h3>
+              <span class="comp-badge badge-strong">Target Achieved</span>
+            </div>
+
+            <div class="reassess-score-comparison">
+              <div class="score-col">
+                <p>Previous Score</p>
+                <strong style="color: var(--accent-amber);">55%</strong>
+              </div>
+              <div style="font-size: 1.4rem; color: var(--primary-light);">➔</div>
+              <div class="score-col">
+                <p>New Score</p>
+                <strong style="color: var(--accent-emerald);">72%</strong>
+              </div>
+              <div class="score-diff-badge">+17% Growth</div>
+            </div>
+
+            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 16px;">
+              Competency baseline raised above foundational threshold with query performance mastery.
+            </p>
+
+            <button type="button" class="btn btn-outline btn-sm" style="width: 100%;" onclick="handleTakeReassessment('Database');">
+              Re-assess Database
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- =====================================================================
+           DASHBOARD JOURNEY WORKFLOW BANNER
+           ===================================================================== -->
+      <section class="dash-journey-banner">
+        <h4 style="font-family: var(--font-heading); font-size: 1.15rem; color: #fff; margin-bottom: 6px;">
+          The CAPACITY CONNECT Learning &amp; Competency Cycle
+        </h4>
+        <p style="font-size: 0.88rem; color: var(--text-secondary);">
+          Your skills &rarr; Identify gaps &rarr; Recommend learning &rarr; Match trainers &rarr; Reassess &rarr; Measure improvement &rarr; Earn Certificates
+        </p>
+
+        <div class="dash-journey-steps">
+          <div class="journey-node">01 Profile</div>
+          <span class="journey-arrow">&rarr;</span>
+          <div class="journey-node">02 Assessment</div>
+          <span class="journey-arrow">&rarr;</span>
+          <div class="journey-node">03 Competency Map</div>
+          <span class="journey-arrow">&rarr;</span>
+          <div class="journey-node active">04 Skill Gap</div>
+          <span class="journey-arrow">&rarr;</span>
+          <div class="journey-node">05 Recommendations</div>
+          <span class="journey-arrow">&rarr;</span>
+          <div class="journey-node">06 Learning</div>
+          <span class="journey-arrow">&rarr;</span>
+          <div class="journey-node">07 Re-Assessment</div>
+          <span class="journey-arrow">&rarr;</span>
+          <div class="journey-node">08 Certificate</div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- =========================================================================
+       MODALS SYSTEM (Interactive Frontend Prototypes)
+       ========================================================================= -->
+  <div class="dash-modal-backdrop" id="dashModalBackdrop" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="dash-modal">
+      <div class="dash-modal-header">
+        <h3 class="dash-modal-title" id="dashModalTitle">Modal Title</h3>
+        <button class="dash-modal-close" id="dashModalClose" aria-label="Close dialog">&times;</button>
+      </div>
+      <div id="dashModalBody">
+        <!-- Injected via JavaScript dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       CLEAN PROFESSIONAL FOOTER
+       ========================================================================= -->
+  <footer class="footer" style="padding: 40px 0 30px; margin-top: auto;">
+    <div class="container" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <div class="logo-icon" style="width: 28px; height: 28px;">
+          <svg viewBox="0 0 24 24" style="width: 16px; height: 16px;"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        </div>
+        <span style="font-weight: 700; font-size: 1rem; color: #fff;">CAPACITY CONNECT</span>
+        <span style="color: var(--text-muted); font-size: 0.85rem; margin-left: 8px;">&bull; Trainee Portal &copy; 2026</span>
+      </div>
+
+      <div class="footer-legal-links" style="font-size: 0.85rem;">
+        <a href="index.html#about">About</a>
+        <a href="index.html#features">Features</a>
+        <a href="mailto:contact@capacityconnect.in">Contact</a>
+        <a href="index.html#resources">Resources</a>
+        <a href="#">Privacy</a>
+        <a href="#">Terms</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Core Scripts -->
+  <script src="js/script.js"></script>
+  <script src="js/dashboard.js"></script>
+</body>
+</html>
