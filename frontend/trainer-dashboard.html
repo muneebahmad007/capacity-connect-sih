@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Trainer Dashboard | CAPACITY CONNECT</title>
+<link rel="icon" href="assets/favicon.ico" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="css/trainer-dashboard.css" />
+</head>
+<body>
+
+<div id="mobileOverlay" class="mobile-overlay"></div>
+
+<!-- SIDEBAR -->
+<aside id="sidebar" class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-mark">
+      <svg viewBox="0 0 24 24" width="26" height="26">
+        <path fill="white" d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+      </svg>
+    </div>
+    <div>
+      <div class="brand-name">CAPACITY<span> CONNECT</span></div>
+      <div class="brand-sub">Trainer workspace</div>
+    </div>
+  </div>
+
+  <nav class="sidebar-nav" id="sidebarNav">
+    <div class="nav-section">
+      <p class="nav-label">Overview</p>
+      <button class="nav-item" data-view="dashboard"><svg class="nav-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg><span>Dashboard</span></button>
+    </div>
+    <div class="nav-section">
+      <p class="nav-label">Manage</p>
+      <button class="nav-item" data-view="courses"><svg class="nav-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg><span>My Courses</span></button>
+      <button class="nav-item" data-view="create-course"><svg class="nav-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg><span>Create Course</span></button>
+      <button class="nav-item" data-view="assessments"><svg class="nav-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M8 11a3 3 0 0 1 5.5-1.5c0 2-2.5 1.5-2.5 3.5"/><path d="M11 15h.01"/><path d="m21 21-4.35-4.35"/></svg><span>Assessments</span></button>
+      <button class="nav-item" data-view="question-bank"><svg class="nav-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 2-3 4"/><path d="M12 17h.01"/></svg><span>Question Bank</span></button>
+    </div>
+    <div class="nav-section">
+      <p class="nav-label">People</p>
+      <button class="nav-item" data-view="trainees"><svg class="nav-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>My Trainees</span></button>
+      <button class="nav-item" data-view="performance"><svg class="nav-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg><span>Performance</span></button>
+      <button class="nav-item" data-view="competency"><svg class="nav-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg><span>Competency &amp; Skill Gaps</span></button>
+    </div>
+    <div class="nav-section">
+      <p class="nav-label">Workspace</p>
+      <button class="nav-item" data-view="resources"><svg class="nav-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V6a2 2 0 0 1 2-2h4l2 2h6a2 2 0 0 1 2 2v2"/><path d="M4 20a2 2 0 0 0 2 2h13a1 1 0 0 0 1-1v-8a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2z"/></svg><span>Resource Library</span></button>
+      <button class="nav-item" data-view="feedback"><svg class="nav-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3z"/></svg><span>Feedback</span></button>
+      <button class="nav-item" data-view="analytics"><svg class="nav-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 16v-4"/><path d="M12 16V8"/><path d="M17 16v-7"/></svg><span>Analytics</span></button>
+      <button class="nav-item" data-view="notifications"><svg class="nav-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg><span>Notifications</span><span class="nav-badge" id="navNotifBadge">4</span></button>
+    </div>
+
+    <div class="sidebar-tip">
+      <div class="tip-title"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9z"/></svg> Trainer tip</div>
+      <p class="tip-body">Trainees who receive weekly feedback improve 2.4&times; faster.</p>
+      <button class="tip-link" id="tipInsightsBtn">View insights <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg></button>
+    </div>
+  </nav>
+
+  <div class="sidebar-footer">
+    <button class="nav-item" data-view="settings"><svg class="nav-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span>Settings</span></button>
+    <button class="footer-profile" data-view="profile" id="footerProfileBtn">
+      <div class="avatar avatar-grad">AS</div>
+      <div class="footer-profile-text">
+        <div class="footer-profile-name">Dr. Arjun Sharma</div>
+        <div class="footer-profile-role">AI / ML Trainer</div>
+      </div>
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="chev"><path d="m6 9 6 6 6-6"/></svg>
+    </button>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <header class="topbar">
+    <div class="topbar-left">
+      <button id="menuBtn" class="icon-btn mobile-only"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h16"/><path d="M4 6h16"/><path d="M4 18h16"/></svg></button>
+      <div class="search-wrap">
+        <svg class="search-icon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input id="globalSearch" type="text" placeholder="Search anything..." autocomplete="off" />
+      </div>
+      <div class="breadcrumb">
+        <span class="crumb-sep">/</span><span>Trainer workspace</span>
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+        <span class="crumb-active" id="crumbActive">Dashboard</span>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <button id="notifBtn" class="icon-btn notif-btn"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg><span class="notif-dot"></span></button>
+      <div class="v-divider"></div>
+      <button id="profileBtn" class="profile-trigger">
+        <div class="avatar avatar-grad">AS</div>
+        <div class="profile-text"><div class="profile-name">Dr. Arjun Sharma</div><div class="profile-role">Trainer</div></div>
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+    </div>
+
+    <div id="notifPanel" class="dropdown-panel notif-panel hidden">
+      <div class="panel-head"><span>Notifications</span><button id="markAllRead" class="link-btn">Mark all read</button></div>
+      <div id="notifPanelList"></div>
+    </div>
+    <div id="profilePanel" class="dropdown-panel profile-panel hidden">
+      <div class="panel-head-sm">Account</div>
+      <button class="panel-item" data-view="profile">View Profile</button>
+      <button class="panel-item" data-view="profile">Edit Profile</button>
+      <button class="panel-item" data-view="settings">Settings</button>
+      <button class="panel-item" id="logoutBtn">Logout</button>
+    </div>
+  </header>
+
+  <div class="content">
+
+    <!-- ===================== DASHBOARD ===================== -->
+    <section class="view" id="view-dashboard" data-view-name="dashboard">
+      <section class="welcome-row">
+        <div>
+          <div class="eyebrow"><span class="dot"></span> <span id="todayDate">Thursday, September 05, 2026</span></div>
+          <h1 class="h1">Welcome back, Dr. Arjun <span class="accent-text">Sharma</span> <span class="wave">👋</span></h1>
+          <p class="sub">Manage your courses, assessments, trainees and competency development.</p>
+        </div>
+        <button class="btn btn-primary" data-open-modal="course"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg> Create new course</button>
+      </section>
+
+      <section class="stat-grid" id="statGrid"></section>
+
+      <section class="two-col two-col-a">
+        <div class="card">
+          <div class="card-head">
+            <div><h2>Quick actions</h2><p>Keep your learning workspace moving</p></div>
+            <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-amber"><path d="M13 2 3 14h9l-1 8 10-12h-9z"/></svg>
+          </div>
+          <div class="quick-actions-grid" id="quickActions"></div>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <div><h2>Performance overview</h2><p>Average score &middot; last 6 months</p></div>
+            <button class="link-btn" data-view="analytics">View analytics</button>
+          </div>
+          <div class="bars" id="perfBars"></div>
+          <div class="bars-labels"><span>Apr</span><span>May</span><span>Jun</span><span>Jul</span><span>Aug</span><span>Sep</span></div>
+        </div>
+      </section>
+
+      <section class="two-col two-col-b">
+        <div class="card">
+          <div class="card-head"><div><h2>Active assessments</h2><p>Track participation and deadlines</p></div><button class="btn btn-ghost btn-sm" data-open-modal="assessment"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg> Create assessment</button></div>
+          <div id="dashAssessmentsList"></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div><h2>Competency &amp; skill gaps</h2><p>Where your trainees need support</p></div><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-rose"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg></div>
+          <div id="dashCompetencyList"></div>
+          <button class="btn btn-outline btn-block" data-view="competency">View detailed analysis <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg></button>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-head"><div><h2>My trainees</h2><p>Monitor progress across your programs</p></div><div class="head-actions"><div class="search-wrap search-sm"><svg class="search-icon" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg><input id="dashTraineeSearch" placeholder="Search trainees" /></div><button class="icon-btn icon-btn-bordered"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg></button></div></div>
+        <div class="table-wrap"><table class="table"><thead><tr><th>Trainee</th><th>Course</th><th>Overall score</th><th>Skill status</th><th>Progress</th><th>Last activity</th><th></th></tr></thead><tbody id="dashTraineeRows"></tbody></table></div>
+      </section>
+
+      <section class="two-col two-col-c">
+        <div class="card">
+          <div class="card-head"><div><h2>Resource library</h2><p>Your most recent learning assets</p></div><button class="icon-btn icon-btn-fill" data-open-modal="resource"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button></div>
+          <div id="dashResourceList"></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div><h2>Recent feedback</h2><p id="feedbackSummary">4.7 / 5 average rating &middot; 86 responses</p></div><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-amber"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3z"/></svg></div>
+          <div id="dashFeedbackList"></div>
+        </div>
+      </section>
+    </section>
+
+    <!-- ===================== MY COURSES ===================== -->
+    <section class="view hidden" id="view-courses" data-view-name="courses">
+      <div class="view-header">
+        <div><h1 class="h1-sm">My Courses</h1><p class="sub">Manage your active learning programs</p></div>
+        <button class="btn btn-primary" data-open-modal="course"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg> Create Course</button>
+      </div>
+      <div class="course-grid" id="coursesGrid"></div>
+    </section>
+
+    <!-- ===================== ASSESSMENTS ===================== -->
+    <section class="view hidden" id="view-assessments" data-view-name="assessments">
+      <div class="view-header">
+        <div><h1 class="h1-sm">Assessments</h1><p class="sub">Create, publish and track trainee assessments</p></div>
+        <button class="btn btn-primary" data-open-modal="assessment"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg> Create Assessment</button>
+      </div>
+      <div class="card"><div id="assessmentsFullList"></div></div>
+    </section>
+
+    <!-- ===================== QUESTION BANK ===================== -->
+    <section class="view hidden" id="view-question-bank" data-view-name="question-bank">
+      <div class="view-header">
+        <div><h1 class="h1-sm">Question Bank</h1><p class="sub">Reusable questions across your assessments</p></div>
+        <button class="btn btn-primary" data-open-modal="question"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg> Add Question</button>
+      </div>
+      <div class="filter-row">
+        <select id="qbSubjectFilter" class="select"><option value="">All subjects</option></select>
+        <select id="qbDifficultyFilter" class="select"><option value="">All difficulties</option><option>Easy</option><option>Medium</option><option>Hard</option></select>
+      </div>
+      <div class="card"><div id="questionBankList"></div></div>
+    </section>
+
+    <!-- ===================== MY TRAINEES ===================== -->
+    <section class="view hidden" id="view-trainees" data-view-name="trainees">
+      <div class="view-header">
+        <div><h1 class="h1-sm">My Trainees</h1><p class="sub">Monitor progress across your programs</p></div>
+        <div class="head-actions"><div class="search-wrap search-sm"><svg class="search-icon" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg><input id="traineesSearch" placeholder="Search trainees" /></div></div>
+      </div>
+      <div class="card"><div class="table-wrap"><table class="table"><thead><tr><th>Trainee</th><th>Email</th><th>Course</th><th>Overall score</th><th>Skill status</th><th>Progress</th><th>Last activity</th><th></th></tr></thead><tbody id="traineesFullRows"></tbody></table></div></div>
+    </section>
+
+    <!-- ===================== PERFORMANCE ===================== -->
+    <section class="view hidden" id="view-performance" data-view-name="performance">
+      <div class="view-header"><div><h1 class="h1-sm">Performance</h1><p class="sub">Course progress and assessment performance across trainees</p></div></div>
+      <section class="stat-grid" id="perfStatGrid"></section>
+      <div class="two-col two-col-a">
+        <div class="card"><div class="card-head"><div><h2>Course progress</h2><p>Average completion per course</p></div></div><div id="perfCourseProgress"></div></div>
+        <div class="card"><div class="card-head"><div><h2>Assessment performance</h2><p>Completion rate per assessment</p></div></div><div id="perfAssessmentPerf"></div></div>
+      </div>
+    </section>
+
+    <!-- ===================== COMPETENCY ===================== -->
+    <section class="view hidden" id="view-competency" data-view-name="competency">
+      <div class="view-header"><div><h1 class="h1-sm">Competency &amp; Skill Gaps</h1><p class="sub">Where your trainees need support, by skill</p></div></div>
+      <div class="card"><div id="competencyFullList"></div></div>
+      <div class="card"><div class="card-head"><div><h2>Recommended actions</h2><p>Suggested interventions per skill gap</p></div></div><div id="competencyActions"></div></div>
+    </section>
+
+    <!-- ===================== RESOURCE LIBRARY ===================== -->
+    <section class="view hidden" id="view-resources" data-view-name="resources">
+      <div class="view-header">
+        <div><h1 class="h1-sm">Resource Library</h1><p class="sub">Learning assets shared with your trainees</p></div>
+        <button class="btn btn-primary" data-open-modal="resource"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg> Add Resource</button>
+      </div>
+      <div class="resource-grid" id="resourcesGrid"></div>
+    </section>
+
+    <!-- ===================== FEEDBACK ===================== -->
+    <section class="view hidden" id="view-feedback" data-view-name="feedback">
+      <div class="view-header"><div><h1 class="h1-sm">Feedback</h1><p class="sub" id="feedbackFullSummary">4.7 / 5 average rating &middot; 86 responses</p></div></div>
+      <div class="card"><div id="feedbackFullList"></div></div>
+    </section>
+
+    <!-- ===================== ANALYTICS ===================== -->
+    <section class="view hidden" id="view-analytics" data-view-name="analytics">
+      <div class="view-header"><div><h1 class="h1-sm">Analytics</h1><p class="sub">A closer look at how your workspace is performing</p></div></div>
+      <section class="stat-grid" id="statGrid2"></section>
+      <div class="two-col two-col-a">
+        <div class="card"><div class="card-head"><div><h2>Average score trend</h2><p>Last 6 months</p></div></div><div class="bars" id="analyticsBars"></div><div class="bars-labels"><span>Apr</span><span>May</span><span>Jun</span><span>Jul</span><span>Aug</span><span>Sep</span></div></div>
+        <div class="card"><div class="card-head"><div><h2>Skill distribution</h2><p>Trainees by competency band</p></div></div><div id="analyticsSkillDist"></div></div>
+      </div>
+      <div class="card"><div class="card-head"><div><h2>Course completion</h2><p>Completion rate by course</p></div></div><div id="analyticsCourseCompletion"></div></div>
+    </section>
+
+    <!-- ===================== NOTIFICATIONS ===================== -->
+    <section class="view hidden" id="view-notifications" data-view-name="notifications">
+      <div class="view-header"><div><h1 class="h1-sm">Notifications</h1><p class="sub">Stay on top of trainee activity</p></div><button id="markAllReadFull" class="btn btn-outline btn-sm">Mark all read</button></div>
+      <div class="card"><div id="notificationsFullList"></div></div>
+    </section>
+
+    <!-- ===================== MY PROFILE ===================== -->
+    <section class="view hidden" id="view-profile" data-view-name="profile">
+      <div class="view-header"><div><h1 class="h1-sm">My Profile</h1><p class="sub">Your trainer identity across CAPACITY CONNECT</p></div></div>
+      <div class="two-col two-col-a">
+        <div class="card">
+          <div class="profile-card-top">
+            <div class="avatar avatar-grad avatar-lg" id="profileAvatarLg">AS</div>
+            <div><div class="profile-card-name" id="profileCardName">Dr. Arjun Sharma</div><div class="profile-card-role" id="profileCardRole">AI / ML Trainer</div></div>
+          </div>
+          <form id="profileForm" class="form-grid">
+            <label class="field wide"><span>Full name</span><input id="pfName" type="text" /></label>
+            <label class="field"><span>Role / title</span><input id="pfRole" type="text" /></label>
+            <label class="field"><span>Email</span><input id="pfEmail" type="email" /></label>
+            <label class="field"><span>Phone</span><input id="pfPhone" type="text" /></label>
+            <label class="field"><span>Primary skill</span><input id="pfSkill" type="text" /></label>
+            <label class="field wide"><span>Bio</span><textarea id="pfBio" rows="3"></textarea></label>
+            <div class="form-actions wide"><button type="submit" class="btn btn-primary">Save profile</button></div>
+          </form>
+        </div>
+        <div class="card">
+          <div class="card-head"><div><h2>Snapshot</h2><p>Your workspace at a glance</p></div></div>
+          <div id="profileSnapshot"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== SETTINGS ===================== -->
+    <section class="view hidden" id="view-settings" data-view-name="settings">
+      <div class="view-header"><div><h1 class="h1-sm">Settings</h1><p class="sub">Preferences for your trainer workspace</p></div></div>
+      <div class="two-col two-col-a">
+        <div class="card">
+          <div class="card-head"><div><h2>Notification preferences</h2><p>Choose what you want to be notified about</p></div></div>
+          <div id="settingsToggles"></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div><h2>Workspace</h2><p>General preferences</p></div></div>
+          <form id="settingsForm" class="form-grid">
+            <label class="field wide"><span>Time zone</span><input id="stTimezone" type="text" placeholder="Asia/Kolkata (IST)" /></label>
+            <label class="field wide"><span>Default assessment time limit (minutes)</span><input id="stTimeLimit" type="number" min="5" placeholder="20" /></label>
+            <div class="form-actions wide"><button type="submit" class="btn btn-primary">Save settings</button><button type="button" id="resetDataBtn" class="btn btn-outline">Reset prototype data</button></div>
+          </form>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<!-- ===================== MODALS ===================== -->
+<div id="modalRoot" class="modal-root hidden"></div>
+
+<!-- TOAST -->
+<div id="toast" class="toast hidden"></div>
+
+<script src="js/trainer-dashboard.js"></script>
+</body>
+</html>

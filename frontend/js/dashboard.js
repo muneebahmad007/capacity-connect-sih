@@ -269,7 +269,7 @@ const TRAINEE_DATA = {
 document.addEventListener('DOMContentLoaded', () => {
   initProfileDropdown();
   initDashboardSearch();
-  initSkillBarAnimations();
+  renderSkillsAndGaps(); // builds the Skills + Skill Gap cards from TRAINEE_DATA (also runs bar animation)
   initModalHandlers();
   initTiltCardsDashboard();
   initFeedbackForm();
@@ -338,6 +338,116 @@ function initSkillBarAnimations() {
       bar.style.width = targetWidth;
     });
   }, 250);
+}
+
+/* --------------------------------------------------------------------------
+   5b. Data-Driven Sync: Skills Overview & Skill Gap Analysis
+   These patch the EXISTING hand-built cards in the HTML (matched via
+   data-skill-id / data-gap-id) so the displayed numbers always match
+   TRAINEE_DATA, instead of the static text that was baked into the markup.
+   Call renderSkillsAndGaps() any time TRAINEE_DATA.skills / .skillGaps changes.
+   -------------------------------------------------------------------------- */
+const LEVEL_COLOR_VAR = {
+  danger: 'var(--accent-rose)',
+  warning: 'var(--accent-amber)',
+  success: 'var(--accent-emerald)'
+};
+
+const LEVEL_BADGE_ICON = {
+  danger: '<span class="pulse-warning-dot"></span>',
+  warning: '<span>⚠️</span>',
+  success: '<span>✅</span>'
+};
+
+function statusToSkillBadgeClass(status) {
+  if (status === 'Strong') return 'badge-strong';
+  if (status === 'Developing') return 'badge-developing';
+  return 'badge-danger';
+}
+
+function syncSkillRowUI(skill) {
+  const row = document.querySelector(`.skill-row-item[data-skill-id="${skill.id}"]`);
+  if (!row) return;
+
+  const valueBadge = row.querySelector('.skill-val-badge');
+  if (valueBadge) valueBadge.textContent = `${skill.score}%`;
+
+  const statusBadge = row.querySelector('.comp-badge');
+  if (statusBadge) {
+    statusBadge.textContent = skill.status;
+    statusBadge.className = `comp-badge ${statusToSkillBadgeClass(skill.status)}`;
+  }
+
+  const bar = row.querySelector('.skill-progress-bar');
+  if (bar) {
+    bar.setAttribute('data-target-width', `${skill.score}%`);
+    bar.style.width = `${skill.score}%`;
+  }
+}
+
+function syncGapCardUI(gap) {
+  const card = document.querySelector(`.gap-card-item[data-gap-id="${gap.id}"]`);
+  if (!card) return;
+
+  const level = gap.levelClass; // 'danger' | 'warning' | 'success'
+  const color = LEVEL_COLOR_VAR[level] || LEVEL_COLOR_VAR.danger;
+
+  card.classList.remove('danger', 'warning', 'success');
+  card.classList.add(level);
+
+  const badgePill = card.querySelector('.gap-badge-pill');
+  if (badgePill) {
+    badgePill.className = `gap-badge-pill ${level}`;
+    badgePill.innerHTML = `${LEVEL_BADGE_ICON[level] || ''}${gap.status}`;
+  }
+
+  const currentVal = card.querySelector('.gap-endpoint-info.current .gap-endpoint-val');
+  if (currentVal) {
+    currentVal.className = `gap-endpoint-val current-${level}`;
+    currentVal.textContent = `${gap.current}%`;
+  }
+
+  const targetVal = card.querySelector('.gap-endpoint-info.target .gap-endpoint-val');
+  if (targetVal) targetVal.textContent = `${gap.target}% 🎯`;
+
+  const callout = card.querySelector('.gap-callout-center');
+  if (callout) {
+    callout.classList.remove('warning', 'success');
+    if (level !== 'danger') callout.classList.add(level);
+    callout.innerHTML = `<span>${gap.gap > 0 ? '▲' : '✓'}</span><span>${gap.gap}% SKILL GAP</span>`;
+  }
+
+  const segCurrent = card.querySelector('.gap-segment-current');
+  if (segCurrent) {
+    segCurrent.className = `gap-segment-current ${level}`;
+    segCurrent.style.width = `${gap.current}%`;
+  }
+
+  const segBridge = card.querySelector('.gap-segment-bridge');
+  if (segBridge) segBridge.className = `gap-segment-bridge ${level}`;
+
+  const milestone = card.querySelector('.gap-target-milestone');
+  if (milestone) milestone.setAttribute('title', `Target Benchmark: ${gap.target}%`);
+
+  const chips = card.querySelectorAll('.gap-mini-chip strong');
+  if (chips.length === 4) {
+    chips[0].textContent = `${gap.current}%`;
+    chips[0].style.color = color;
+    chips[1].textContent = `${gap.target}%`; // target stays emerald
+    chips[2].textContent = `${gap.gap}% Gap`;
+    chips[2].style.color = color;
+    chips[3].textContent = gap.status;
+    chips[3].style.color = color;
+  }
+
+  const actionText = card.querySelector('.gap-action-footer span');
+  if (actionText) actionText.textContent = `Identified Action: ${gap.recommendedAction}`;
+}
+
+function renderSkillsAndGaps() {
+  TRAINEE_DATA.skills.forEach(syncSkillRowUI);
+  TRAINEE_DATA.skillGaps.forEach(syncGapCardUI);
+  initSkillBarAnimations(); // (re)trigger the width transition with the new values
 }
 
 /* --------------------------------------------------------------------------
@@ -759,121 +869,1188 @@ function handleAccessResources(courseId) {
 /* --------------------------------------------------------------------------
    9. Capability D: Subject-Wise MCQ Assessment Simulator
    -------------------------------------------------------------------------- */
+/* ============================================================
+   SECTION 9: AI / ML MCQ ASSESSMENT
+   ============================================================ */
+
 let currentMcqStep = 0;
 let userMcqAnswers = {};
+let assessmentTimerInterval = null;
+let assessmentEndTime = null;
+
+
+/* ------------------------------------------------------------
+   AI / ML QUESTION BANK
+   ------------------------------------------------------------ */
+
+TRAINEE_DATA.upcomingAssessment.sampleQuestions = [
+
+    {
+        id: 1,
+        question: "What is Artificial Intelligence (AI)?",
+        options: [
+            "A system used only for storing data",
+            "The ability of machines to perform tasks that normally require human intelligence",
+            "A programming language",
+            "A type of computer hardware"
+        ],
+        correctIndex: 1,
+        explanation: "AI refers to systems capable of performing tasks such as learning, reasoning, perception, and decision-making."
+    },
+
+    {
+        id: 2,
+        question: "Which type of machine learning uses labeled training data?",
+        options: [
+            "Supervised Learning",
+            "Unsupervised Learning",
+            "Reinforcement Learning",
+            "Random Learning"
+        ],
+        correctIndex: 0,
+        explanation: "Supervised learning trains a model using input data together with known target labels."
+    },
+
+    {
+        id: 3,
+        question: "Which of the following is an example of unsupervised learning?",
+        options: [
+            "Predicting house prices",
+            "Classifying emails as spam or not spam",
+            "Grouping customers based on purchasing behavior",
+            "Predicting whether a patient has a disease"
+        ],
+        correctIndex: 2,
+        explanation: "Customer grouping or clustering can be performed without predefined labels."
+    },
+
+    {
+        id: 4,
+        question: "What is the main idea behind Reinforcement Learning?",
+        options: [
+            "Learning from labeled datasets",
+            "Learning through rewards and penalties",
+            "Learning only from images",
+            "Memorizing the training dataset"
+        ],
+        correctIndex: 1,
+        explanation: "An agent learns by interacting with an environment and receiving rewards or penalties."
+    },
+
+    {
+        id: 5,
+        question: "In machine learning, what is a feature?",
+        options: [
+            "The final prediction made by the model",
+            "An input variable used by the model",
+            "The model's accuracy",
+            "The training algorithm"
+        ],
+        correctIndex: 1,
+        explanation: "Features are input variables used by a machine-learning model to make predictions."
+    },
+
+    {
+        id: 6,
+        question: "What is the purpose of a training dataset?",
+        options: [
+            "To permanently store the model",
+            "To train the model to learn patterns",
+            "To display the final results",
+            "To measure internet speed"
+        ],
+        correctIndex: 1,
+        explanation: "Training data is used by the model to learn relationships and patterns."
+    },
+
+    {
+        id: 7,
+        question: "What does overfitting mean in machine learning?",
+        options: [
+            "The model performs poorly on both training and test data",
+            "The model is too simple to learn patterns",
+            "The model learns the training data too closely and performs poorly on unseen data",
+            "The model has no parameters"
+        ],
+        correctIndex: 2,
+        explanation: "An overfitted model memorizes training patterns, including noise, and fails to generalize well."
+    },
+
+    {
+        id: 8,
+        question: "What is underfitting?",
+        options: [
+            "The model is too simple to capture important patterns in the data",
+            "The model memorizes all training examples",
+            "The model has extremely high accuracy",
+            "The model has too many layers"
+        ],
+        correctIndex: 0,
+        explanation: "Underfitting occurs when a model is not complex enough to capture the underlying patterns."
+    },
+
+    {
+        id: 9,
+        question: "Why is a dataset commonly divided into training and testing sets?",
+        options: [
+            "To increase the file size",
+            "To evaluate how well the model generalizes to unseen data",
+            "To remove all features",
+            "To make the computer faster"
+        ],
+        correctIndex: 1,
+        explanation: "The test set provides an independent evaluation of the model on previously unseen examples."
+    },
+
+    {
+        id: 10,
+        question: "What does classification mean in machine learning?",
+        options: [
+            "Predicting a continuous numerical value",
+            "Assigning data to predefined categories",
+            "Removing duplicate rows",
+            "Compressing a dataset"
+        ],
+        correctIndex: 1,
+        explanation: "Classification predicts discrete categories such as spam/not spam or disease/no disease."
+    },
+
+    {
+        id: 11,
+        question: "Which task is an example of regression?",
+        options: [
+            "Predicting tomorrow's temperature",
+            "Classifying an email as spam",
+            "Recognizing whether an image contains a cat",
+            "Grouping customers into clusters"
+        ],
+        correctIndex: 0,
+        explanation: "Regression predicts continuous numerical values."
+    },
+
+    {
+        id: 12,
+        question: "What is the primary purpose of a loss function?",
+        options: [
+            "To measure how far a model's predictions are from the desired outputs",
+            "To increase the dataset size",
+            "To create database tables",
+            "To visualize images"
+        ],
+        correctIndex: 0,
+        explanation: "A loss function quantifies prediction error and helps guide model optimization."
+    },
+
+    {
+        id: 13,
+        question: "What is gradient descent mainly used for?",
+        options: [
+            "Sorting datasets alphabetically",
+            "Optimizing model parameters by reducing the loss",
+            "Creating HTML pages",
+            "Encrypting passwords"
+        ],
+        correctIndex: 1,
+        explanation: "Gradient descent iteratively adjusts model parameters in a direction that reduces the loss."
+    },
+
+    {
+        id: 14,
+        question: "What does the learning rate control in gradient descent?",
+        options: [
+            "The number of features",
+            "The size of each parameter update",
+            "The number of classes",
+            "The size of the dataset"
+        ],
+        correctIndex: 1,
+        explanation: "The learning rate determines how large each optimization step is."
+    },
+
+    {
+        id: 15,
+        question: "What is a neural network inspired by?",
+        options: [
+            "Database tables",
+            "The structure and functioning of biological neural systems",
+            "Computer keyboards",
+            "File systems"
+        ],
+        correctIndex: 1,
+        explanation: "Artificial neural networks are loosely inspired by biological neurons and their connections."
+    },
+
+    {
+        id: 16,
+        question: "Which activation function is commonly used in hidden layers of modern neural networks?",
+        options: [
+            "ReLU",
+            "SQL",
+            "HTML",
+            "CSV"
+        ],
+        correctIndex: 0,
+        explanation: "ReLU (Rectified Linear Unit) is widely used because it is simple and helps neural networks learn nonlinear relationships."
+    },
+
+    {
+        id: 17,
+        question: "What is a Convolutional Neural Network (CNN) particularly useful for?",
+        options: [
+            "Image and visual data processing",
+            "Writing database queries",
+            "Managing operating-system files",
+            "Sending emails"
+        ],
+        correctIndex: 0,
+        explanation: "CNNs are especially effective at extracting spatial patterns from images and other grid-like data."
+    },
+
+    {
+        id: 18,
+        question: "What is Natural Language Processing (NLP)?",
+        options: [
+            "Processing and understanding human language using computers",
+            "Processing only numerical datasets",
+            "Managing computer networks",
+            "Designing computer hardware"
+        ],
+        correctIndex: 0,
+        explanation: "NLP focuses on enabling computers to process, understand, and generate human language."
+    },
+
+    {
+        id: 19,
+        question: "What is precision in binary classification?",
+        options: [
+            "The proportion of actual positives that were correctly identified",
+            "The proportion of predicted positives that are actually positive",
+            "The total number of training samples",
+            "The percentage of missing values"
+        ],
+        correctIndex: 1,
+        explanation: "Precision = True Positives / (True Positives + False Positives)."
+    },
+
+    {
+        id: 20,
+        question: "Which technique can help reduce overfitting in a neural network?",
+        options: [
+            "Dropout",
+            "Increasing training errors intentionally",
+            "Removing all training data",
+            "Using only one sample"
+        ],
+        correctIndex: 0,
+        explanation: "Dropout randomly disables some neurons during training, which can help the network generalize better."
+    }
+
+];
+
+
+/* ------------------------------------------------------------
+   START ASSESSMENT
+   ------------------------------------------------------------ */
 
 function handleStartAssessment() {
-  const assess = TRAINEE_DATA.upcomingAssessment;
-  currentMcqStep = 0;
-  userMcqAnswers = {};
 
-  renderMcqQuestionModal(assess);
+    const assess = TRAINEE_DATA.upcomingAssessment;
+
+    currentMcqStep = 0;
+    userMcqAnswers = {};
+
+    clearAssessmentTimer();
+
+    assessmentEndTime =
+        Date.now() + (assess.timeLimit * 60 * 1000);
+
+    renderMcqQuestionModal(assess);
+    startAssessmentTimer();
 }
+
+
+/* ------------------------------------------------------------
+   TIMER
+   ------------------------------------------------------------ */
+
+function startAssessmentTimer() {
+
+    clearAssessmentTimer();
+
+    assessmentTimerInterval = setInterval(() => {
+
+        const backdrop = document.getElementById("dashModalBackdrop");
+
+        // Stop timer if modal has been closed
+        if (!backdrop || !backdrop.classList.contains("open")) {
+            clearAssessmentTimer();
+            return;
+        }
+
+        updateAssessmentTimer();
+
+    }, 1000);
+
+    updateAssessmentTimer();
+}
+
+
+function updateAssessmentTimer() {
+
+    const timerElement =
+        document.getElementById("mcqTimer");
+
+    if (!timerElement || !assessmentEndTime) {
+        return;
+    }
+
+    const remaining =
+        Math.max(0, assessmentEndTime - Date.now());
+
+    const totalSeconds =
+        Math.floor(remaining / 1000);
+
+    const minutes =
+        Math.floor(totalSeconds / 60);
+
+    const seconds =
+        totalSeconds % 60;
+
+    timerElement.textContent =
+        `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+
+    if (totalSeconds <= 60) {
+
+        timerElement.style.color = "#ef4444";
+        timerElement.style.fontWeight = "800";
+
+    } else {
+
+        timerElement.style.color = "var(--accent-amber)";
+        timerElement.style.fontWeight = "700";
+    }
+
+
+    // Time finished
+    if (remaining <= 0) {
+
+        clearAssessmentTimer();
+
+        showToast(
+            "Time is up. Your assessment has been submitted automatically.",
+            "info"
+        );
+
+        submitMcqAssessment(true);
+    }
+}
+
+
+function clearAssessmentTimer() {
+
+    if (assessmentTimerInterval) {
+
+        clearInterval(assessmentTimerInterval);
+        assessmentTimerInterval = null;
+    }
+
+    assessmentEndTime = null;
+}
+
+
+/* ------------------------------------------------------------
+   SAVE ANSWER
+   ------------------------------------------------------------ */
+
+function handleAssessmentAnswer(questionId, index) {
+
+    userMcqAnswers[questionId] = index;
+}
+
+
+/* ------------------------------------------------------------
+   RENDER QUESTION
+   ------------------------------------------------------------ */
 
 function renderMcqQuestionModal(assess) {
-  const q = assess.sampleQuestions[currentMcqStep];
-  const total = assess.sampleQuestions.length;
 
-  const content = `
-    <!-- Assessment Meta Header -->
-    <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(59,130,246,0.08); border: 1px solid rgba(59,130,246,0.25); border-radius: 14px; padding: 12px 18px; margin-bottom: 20px;">
-      <div>
-        <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--primary-light); font-weight: 700;">Subject: ${assess.subject}</span>
-        <h4 style="color: #fff; font-size: 0.95rem; margin-top: 2px;">${assess.title}</h4>
-      </div>
-      <div style="text-align: right;">
-        <span style="font-size: 0.75rem; color: var(--accent-amber); font-weight: 700;">⏱️ 19:45 Rem.</span>
-        <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">Question ${currentMcqStep + 1} of ${total}</div>
-      </div>
-    </div>
+    const questions = assess.sampleQuestions;
 
-    <!-- Question Card -->
-    <div style="margin-bottom: 22px;">
-      <h4 style="font-size: 1.08rem; color: #ffffff; line-height: 1.5; margin-bottom: 16px;">
-        <span style="color: var(--primary-light); font-weight: 800;">Q${currentMcqStep + 1}.</span> ${q.question}
-      </h4>
+    const q = questions[currentMcqStep];
 
-      <!-- Options List -->
-      <div style="display: flex; flex-direction: column; gap: 10px;">
-        ${q.options.map((opt, idx) => `
-          <label style="display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle); padding: 12px 16px; border-radius: 12px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='rgba(59,130,246,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.03)'">
-            <input type="radio" name="mcqOption" value="${idx}" ${userMcqAnswers[q.id] === idx ? 'checked' : ''} onchange="userMcqAnswers[${q.id}] = ${idx};" style="accent-color: var(--primary); width: 18px; height: 18px;">
-            <span style="color: #ffffff; font-size: 0.9rem;">${opt}</span>
-          </label>
-        `).join('')}
-      </div>
-    </div>
+    const total = questions.length;
 
-    <!-- Assessment Controls -->
-    <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-subtle); padding-top: 18px;">
-      <button type="button" class="btn btn-secondary btn-sm" ${currentMcqStep === 0 ? 'disabled style="opacity:0.4; cursor:not-allowed;"' : ''} onclick="prevMcqQuestion();">
-        &larr; Previous
-      </button>
+    const selectedAnswer =
+        userMcqAnswers[q.id];
 
-      ${currentMcqStep === total - 1 ? `
-        <button type="button" class="btn btn-primary" onclick="submitMcqAssessment();">
-          Submit Assessment &check;
-        </button>
-      ` : `
-        <button type="button" class="btn btn-primary btn-sm" onclick="nextMcqQuestion();">
-          Next Question &rarr;
-        </button>
-      `}
-    </div>
-  `;
 
-  openModal(`Subject-Wise MCQ Assessment`, content);
+    const progress =
+        Math.round(((currentMcqStep + 1) / total) * 100);
+
+
+    const content = `
+
+        <!-- Assessment Header -->
+
+        <div style="
+            background: rgba(59,130,246,0.08);
+            border: 1px solid rgba(59,130,246,0.25);
+            border-radius: 14px;
+            padding: 14px 18px;
+            margin-bottom: 20px;
+        ">
+
+            <div style="
+                display:flex;
+                justify-content:space-between;
+                align-items:center;
+                gap:15px;
+            ">
+
+                <div>
+
+                    <span style="
+                        font-size:0.72rem;
+                        text-transform:uppercase;
+                        color:var(--primary-light);
+                        font-weight:700;
+                    ">
+                        Artificial Intelligence & Machine Learning
+                    </span>
+
+                    <h4 style="
+                        color:#fff;
+                        font-size:0.95rem;
+                        margin-top:4px;
+                    ">
+                        ${assess.title}
+                    </h4>
+
+                </div>
+
+
+                <div style="
+                    text-align:right;
+                    min-width:80px;
+                ">
+
+                    <div id="mcqTimer" style="
+                        font-size:1rem;
+                        color:var(--accent-amber);
+                        font-weight:700;
+                    ">
+                        20:00
+                    </div>
+
+                    <div style="
+                        font-size:0.75rem;
+                        color:var(--text-muted);
+                        margin-top:3px;
+                    ">
+                        Time Remaining
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- Progress -->
+
+            <div style="
+                margin-top:14px;
+                height:6px;
+                background:rgba(255,255,255,0.08);
+                border-radius:10px;
+                overflow:hidden;
+            ">
+
+                <div style="
+                    width:${progress}%;
+                    height:100%;
+                    background:var(--primary);
+                    border-radius:10px;
+                    transition:width 0.3s ease;
+                "></div>
+
+            </div>
+
+
+            <div style="
+                display:flex;
+                justify-content:space-between;
+                margin-top:8px;
+                font-size:0.75rem;
+                color:var(--text-muted);
+            ">
+
+                <span>
+                    Question ${currentMcqStep + 1} of ${total}
+                </span>
+
+                <span>
+                    ${progress}% complete
+                </span>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- Question -->
+
+        <div style="margin-bottom:22px;">
+
+            <h4 style="
+                font-size:1.08rem;
+                color:#ffffff;
+                line-height:1.55;
+                margin-bottom:17px;
+            ">
+
+                <span style="
+                    color:var(--primary-light);
+                    font-weight:800;
+                ">
+                    Q${currentMcqStep + 1}.
+                </span>
+
+                ${q.question}
+
+            </h4>
+
+
+
+            <!-- Options -->
+
+            <div style="
+                display:flex;
+                flex-direction:column;
+                gap:10px;
+            ">
+
+                ${q.options.map((opt, idx) => `
+
+                    <label style="
+                        display:flex;
+                        align-items:center;
+                        gap:12px;
+                        background:${
+                            selectedAnswer === idx
+                                ? "rgba(59,130,246,0.14)"
+                                : "rgba(255,255,255,0.03)"
+                        };
+                        border:1px solid ${
+                            selectedAnswer === idx
+                                ? "rgba(59,130,246,0.55)"
+                                : "var(--border-subtle)"
+                        };
+                        padding:13px 16px;
+                        border-radius:12px;
+                        cursor:pointer;
+                        transition:all 0.2s;
+                    ">
+
+                        <input
+                            type="radio"
+                            name="mcqOption"
+                            value="${idx}"
+                            ${
+                                selectedAnswer === idx
+                                    ? "checked"
+                                    : ""
+                            }
+                            onchange="
+                                handleAssessmentAnswer(${q.id}, ${idx});
+                                renderMcqQuestionModal(
+                                    TRAINEE_DATA.upcomingAssessment
+                                );
+                            "
+                            style="
+                                accent-color:var(--primary);
+                                width:18px;
+                                height:18px;
+                                flex-shrink:0;
+                            "
+                        >
+
+                        <span style="
+                            color:#ffffff;
+                            font-size:0.9rem;
+                            line-height:1.45;
+                        ">
+                            ${opt}
+                        </span>
+
+                    </label>
+
+                `).join("")}
+
+            </div>
+
+        </div>
+
+
+
+        <!-- Controls -->
+
+        <div style="
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            gap:10px;
+            border-top:1px solid var(--border-subtle);
+            padding-top:18px;
+        ">
+
+
+            <button
+                type="button"
+                class="btn btn-secondary btn-sm"
+                ${
+                    currentMcqStep === 0
+                        ? `
+                            disabled
+                            style="
+                                opacity:0.4;
+                                cursor:not-allowed;
+                            "
+                        `
+                        : ""
+                }
+                onclick="prevMcqQuestion();"
+            >
+                &larr; Previous
+            </button>
+
+
+
+            ${
+                currentMcqStep === total - 1
+
+                ?
+
+                `
+                    <button
+                        type="button"
+                        class="btn btn-primary"
+                        onclick="submitMcqAssessment();"
+                    >
+                        Submit Assessment &check;
+                    </button>
+                `
+
+                :
+
+                `
+                    <button
+                        type="button"
+                        class="btn btn-primary btn-sm"
+                        onclick="nextMcqQuestion();"
+                    >
+                        Next Question &rarr;
+                    </button>
+                `
+            }
+
+        </div>
+
+    `;
+
+
+    openModal(
+        "AI / ML Competency Assessment",
+        content
+    );
+
+
+    // Re-apply timer immediately after modal rendering
+    updateAssessmentTimer();
 }
+
+
+/* ------------------------------------------------------------
+   NEXT QUESTION
+   ------------------------------------------------------------ */
 
 function nextMcqQuestion() {
-  if (currentMcqStep < TRAINEE_DATA.upcomingAssessment.sampleQuestions.length - 1) {
-    currentMcqStep++;
-    renderMcqQuestionModal(TRAINEE_DATA.upcomingAssessment);
-  }
+
+    const assess =
+        TRAINEE_DATA.upcomingAssessment;
+
+    const currentQuestion =
+        assess.sampleQuestions[currentMcqStep];
+
+
+    // Don't allow unanswered questions
+    if (
+        userMcqAnswers[currentQuestion.id] === undefined
+    ) {
+
+        showToast(
+            "Please select an answer before continuing.",
+            "info"
+        );
+
+        return;
+    }
+
+
+    if (
+        currentMcqStep <
+        assess.sampleQuestions.length - 1
+    ) {
+
+        currentMcqStep++;
+
+        renderMcqQuestionModal(assess);
+    }
 }
+
+
+/* ------------------------------------------------------------
+   PREVIOUS QUESTION
+   ------------------------------------------------------------ */
 
 function prevMcqQuestion() {
-  if (currentMcqStep > 0) {
-    currentMcqStep--;
-    renderMcqQuestionModal(TRAINEE_DATA.upcomingAssessment);
-  }
+
+    if (currentMcqStep > 0) {
+
+        currentMcqStep--;
+
+        renderMcqQuestionModal(
+            TRAINEE_DATA.upcomingAssessment
+        );
+    }
 }
 
-function submitMcqAssessment() {
-  const assess = TRAINEE_DATA.upcomingAssessment;
-  let correctCount = 0;
 
-  assess.sampleQuestions.forEach(q => {
-    if (userMcqAnswers[q.id] === q.correctIndex) {
-      correctCount++;
+/* ------------------------------------------------------------
+   SUBMIT ASSESSMENT
+   ------------------------------------------------------------ */
+
+function submitMcqAssessment(isAutoSubmit = false) {
+
+    const assess =
+        TRAINEE_DATA.upcomingAssessment;
+
+    const questions =
+        assess.sampleQuestions;
+
+
+    /* --------------------------------------------
+       Check unanswered questions
+       -------------------------------------------- */
+
+    if (!isAutoSubmit) {
+
+        const unansweredIndex =
+            questions.findIndex(
+                q => userMcqAnswers[q.id] === undefined
+            );
+
+
+        if (unansweredIndex !== -1) {
+
+            currentMcqStep = unansweredIndex;
+
+            renderMcqQuestionModal(assess);
+
+            showToast(
+                "Please answer all questions before submitting.",
+                "info"
+            );
+
+            return;
+        }
     }
-  });
 
-  const percent = Math.round((correctCount / assess.sampleQuestions.length) * 100);
 
-  const content = `
-    <div style="text-align: center; padding: 10px 0;">
-      <div style="width: 74px; height: 74px; border-radius: 50%; background: rgba(16,185,129,0.15); border: 2px solid var(--accent-emerald); display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto 16px;">
-        🎉
-      </div>
-      <h3 style="font-size: 1.4rem; color: #fff; margin-bottom: 6px;">Assessment Completed!</h3>
-      <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 20px;">Your diagnostic score has been recorded and mapped to your competency radar.</p>
+    clearAssessmentTimer();
 
-      <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle); border-radius: 16px; padding: 20px; margin-bottom: 24px;">
-        <div style="font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.05em;">Final Score</div>
-        <div style="font-family: var(--font-heading); font-size: 2.5rem; font-weight: 800; color: var(--accent-emerald); margin: 4px 0;">
-          ${percent}%
+
+    /* --------------------------------------------
+       Calculate score
+       -------------------------------------------- */
+
+    let correctCount = 0;
+
+
+    questions.forEach(q => {
+
+        if (
+            userMcqAnswers[q.id] === q.correctIndex
+        ) {
+
+            correctCount++;
+        }
+
+    });
+
+
+    const totalQuestions =
+        questions.length;
+
+    const percent =
+        Math.round(
+            (correctCount / totalQuestions) * 100
+        );
+
+
+    /* --------------------------------------------
+       Update AI / ML competency
+       -------------------------------------------- */
+
+    const aimlSkill =
+        TRAINEE_DATA.skills.find(
+            skill => skill.id === "aiml"
+        );
+
+
+    const previousScore =
+        aimlSkill ? aimlSkill.score : 0;
+
+
+    if (aimlSkill) {
+
+        aimlSkill.score = percent;
+
+
+        if (percent >= 80) {
+
+            aimlSkill.status = "Strong";
+
+        } else if (percent >= 60) {
+
+            aimlSkill.status = "Developing";
+
+        } else {
+
+            aimlSkill.status = "Needs Improvement";
+        }
+    }
+
+
+    /* --------------------------------------------
+       Update AI / ML skill gap
+       -------------------------------------------- */
+
+    const aimlGap =
+        TRAINEE_DATA.skillGaps.find(
+            gap => gap.id === "gap-aiml"
+        );
+
+
+    let currentGap = 0;
+
+    let gapStatus = "";
+
+    let gapLevelClass = "";
+
+    let recommendedAction = "";
+
+
+    if (aimlGap) {
+
+        const target = aimlGap.target || 80;
+
+        currentGap =
+            Math.max(target - percent, 0);
+
+
+        if (percent >= target) {
+
+            gapStatus = "Target Achieved";
+
+            gapLevelClass = "success";
+
+            recommendedAction =
+                "Maintain your AI/ML competency through advanced practice and projects.";
+
+        } else if (currentGap >= 40) {
+
+            gapStatus = "Major Skill Gap";
+
+            gapLevelClass = "danger";
+
+            recommendedAction =
+                "Focus on foundational AI/ML concepts and complete the recommended learning path.";
+
+        } else if (currentGap >= 20) {
+
+            gapStatus = "Needs Improvement";
+
+            gapLevelClass = "warning";
+
+            recommendedAction =
+                "Continue AI/ML learning and complete additional practice assessments.";
+
+        } else {
+
+            gapStatus = "On Track";
+
+            gapLevelClass = "success";
+
+            recommendedAction =
+                "Complete the remaining AI/ML learning activities to reach the target competency.";
+        }
+
+
+        aimlGap.current = percent;
+
+        aimlGap.gap = currentGap;
+
+        aimlGap.status = gapStatus;
+
+        aimlGap.levelClass = gapLevelClass;
+
+        aimlGap.recommendedAction =
+            recommendedAction;
+    }
+
+
+    /* --------------------------------------------
+       Push the updated scores into the DOM right away
+       -------------------------------------------- */
+
+    renderSkillsAndGaps();
+
+
+    /* --------------------------------------------
+       Result Modal
+       -------------------------------------------- */
+
+    let resultMessage = "";
+
+
+    if (percent >= 80) {
+
+        resultMessage =
+            "Excellent performance! You have reached the target AI/ML competency level.";
+
+    } else if (percent >= 60) {
+
+        resultMessage =
+            "Good progress. Continue learning to close the remaining AI/ML skill gap.";
+
+    } else {
+
+        resultMessage =
+            "This assessment identified areas where additional AI/ML learning is recommended.";
+    }
+
+
+    const content = `
+
+        <div style="
+            text-align:center;
+            padding:10px 0;
+        ">
+
+
+            <div style="
+                width:74px;
+                height:74px;
+                border-radius:50%;
+                background:rgba(16,185,129,0.15);
+                border:2px solid var(--accent-emerald);
+                display:flex;
+                align-items:center;
+                justify-content:center;
+                font-size:2rem;
+                margin:0 auto 16px;
+            ">
+                ${
+                    percent >= 80
+                        ? "🏆"
+                        : percent >= 60
+                            ? "🎯"
+                            : "📚"
+                }
+            </div>
+
+
+            <h3 style="
+                font-size:1.4rem;
+                color:#fff;
+                margin-bottom:6px;
+            ">
+                Assessment Completed!
+            </h3>
+
+
+            <p style="
+                color:var(--text-secondary);
+                font-size:0.9rem;
+                line-height:1.5;
+                margin-bottom:20px;
+            ">
+                ${resultMessage}
+            </p>
+
+
+
+            <!-- Score -->
+
+            <div style="
+                background:rgba(255,255,255,0.03);
+                border:1px solid var(--border-subtle);
+                border-radius:16px;
+                padding:20px;
+                margin-bottom:16px;
+            ">
+
+                <div style="
+                    font-size:0.8rem;
+                    text-transform:uppercase;
+                    color:var(--text-muted);
+                    letter-spacing:0.05em;
+                ">
+                    Final Score
+                </div>
+
+
+                <div style="
+                    font-family:var(--font-heading);
+                    font-size:2.5rem;
+                    font-weight:800;
+                    color:var(--accent-emerald);
+                    margin:4px 0;
+                ">
+                    ${percent}%
+                </div>
+
+
+                <span style="
+                    font-size:0.85rem;
+                    color:#ffffff;
+                ">
+                    ${correctCount} of ${totalQuestions} Correct
+                </span>
+
+            </div>
+
+
+
+            <!-- Competency Update -->
+
+            <div style="
+                display:grid;
+                grid-template-columns:1fr 1fr;
+                gap:10px;
+                margin-bottom:20px;
+            ">
+
+
+                <div style="
+                    background:rgba(255,255,255,0.03);
+                    border:1px solid var(--border-subtle);
+                    border-radius:12px;
+                    padding:14px;
+                ">
+
+                    <div style="
+                        color:var(--text-muted);
+                        font-size:0.72rem;
+                        text-transform:uppercase;
+                    ">
+                        AI/ML Competency
+                    </div>
+
+                    <div style="
+                        color:#fff;
+                        font-size:1.2rem;
+                        font-weight:800;
+                        margin-top:4px;
+                    ">
+                        ${percent}%
+                    </div>
+
+                </div>
+
+
+
+                <div style="
+                    background:rgba(255,255,255,0.03);
+                    border:1px solid var(--border-subtle);
+                    border-radius:12px;
+                    padding:14px;
+                ">
+
+                    <div style="
+                        color:var(--text-muted);
+                        font-size:0.72rem;
+                        text-transform:uppercase;
+                    ">
+                        Remaining Gap
+                    </div>
+
+                    <div style="
+                        color:#fff;
+                        font-size:1.2rem;
+                        font-weight:800;
+                        margin-top:4px;
+                    ">
+                        ${currentGap}%
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            ${
+                isAutoSubmit
+
+                ?
+
+                `
+                    <div style="
+                        background:rgba(245,158,11,0.08);
+                        border:1px solid rgba(245,158,11,0.25);
+                        border-radius:12px;
+                        padding:10px;
+                        margin-bottom:18px;
+                        color:#fbbf24;
+                        font-size:0.82rem;
+                    ">
+                        ⏱️ The assessment was automatically submitted because the time limit expired.
+                    </div>
+                `
+
+                :
+
+                ""
+            }
+
+
+
+            <button
+                type="button"
+                class="btn btn-primary"
+                style="width:100%;"
+                onclick="
+                    closeModal();
+                    showToast(
+                        'AI/ML competency profile updated locally.',
+                        'success'
+                    );
+                "
+            >
+                Return to Dashboard &check;
+            </button>
+
         </div>
-        <span style="font-size: 0.85rem; color: #ffffff;">${correctCount} of ${assess.sampleQuestions.length} Sample MCQs Correct</span>
-      </div>
 
-      <button type="button" class="btn btn-primary" style="width: 100%;" onclick="closeModal(); showToast('Competency profile updated with new assessment score!', 'success');">
-        Return to Dashboard &check;
-      </button>
-    </div>
-  `;
+    `;
 
-  openModal(`Assessment Results`, content);
+
+    openModal(
+        "Assessment Results",
+        content
+    );
 }
 
 /* --------------------------------------------------------------------------
