@@ -456,10 +456,10 @@
           <!-- Course 1 -->
           <div class="dash-course-card" data-searchable>
             <div>
-              <span class="dash-course-tag">Loading...</span>
-              <h3 class="dash-course-title">Loading courses...</h3>
+              <span class="dash-course-tag">Skill: AI / ML</span>
+              <h3 class="dash-course-title">Introduction to Artificial Intelligence</h3>
               <p class="dash-course-desc">
-                Fetching courses from Capacity Connect.
+                Master foundational AI principles, search algorithms, heuristic evaluation, and knowledge representation designed to bridge early ML gaps.
               </p>
             </div>
             <div>
@@ -467,7 +467,7 @@
                 <span>Difficulty: <strong>Beginner</strong></span>
                 <span>Duration: <strong>6 Weeks</strong></span>
               </div>
-              <button type="button" class="btn btn-primary btn-sm" style="width: 100%;" onclick="handleCourseEnroll('course-1', this)">
+              <button type="button" class="btn btn-primary btn-sm" style="width: 100%;" data-course-id="7" onclick="handleCourseEnroll(7, this)">
                 Enroll in Course
               </button>
             </div>
@@ -487,7 +487,7 @@
                 <span>Difficulty: <strong>Intermediate</strong></span>
                 <span>Duration: <strong>8 Weeks</strong></span>
               </div>
-              <button type="button" class="btn btn-primary btn-sm" style="width: 100%;" onclick="handleCourseEnroll('course-2', this)">
+              <button type="button" class="btn btn-primary btn-sm" style="width: 100%;" data-course-id="8" onclick="handleCourseEnroll(8, this)">
                 Enroll in Course
               </button>
             </div>
@@ -507,11 +507,30 @@
                 <span>Difficulty: <strong>Beginner</strong></span>
                 <span>Duration: <strong>4 Weeks</strong></span>
               </div>
-              <button type="button" class="btn btn-primary btn-sm" style="width: 100%;" onclick="handleCourseEnroll('course-3', this)">
+              <button type="button" class="btn btn-primary btn-sm" style="width: 100%;" data-course-id="9" onclick="handleCourseEnroll(9, this)">
                 Enroll in Course
               </button>
             </div>
           </div>
+        </div>
+      </section>
+
+      <!-- =====================================================================
+           SECTION 4B — MY ENROLLED COURSES
+           ===================================================================== -->
+      <section class="dash-section" id="my-courses-section" data-searchable>
+        <div class="dash-section-header">
+          <div>
+            <h2 class="dash-section-title">
+              <span class="section-tag-dot" style="background: var(--accent-emerald); box-shadow: 0 0 10px var(--accent-emerald);"></span>
+              My Enrolled Courses
+            </h2>
+            <p class="dash-section-subtitle">Active courses and learning programs you are enrolled in</p>
+          </div>
+        </div>
+
+        <div class="dash-courses-grid" id="myCoursesGrid">
+          <!-- Populated dynamically via GET /enrollments/{user_id} -->
         </div>
       </section>
 

@@ -14,158 +14,6 @@
    1. Structured Trainee Prototype Data
    (Easily replaceable with Supabase / REST API endpoints later)
    -------------------------------------------------------------------------- */
-const API_BASE_URL = "https://capacity-connect-backend-ejbl.onrender.com";
-
-function escapeHTML(value) {
-  const div = document.createElement("div");
-  div.textContent = value ?? "";
-  return div.innerHTML;
-}
-
-function getCourseSkillLabel(title) {
-  const normalizedTitle = (title || "").toLowerCase();
-
-  if (
-    normalizedTitle.includes("artificial intelligence") ||
-    normalizedTitle.includes("machine learning")
-  ) {
-    return "Skill: AI / ML";
-  }
-
-  if (normalizedTitle.includes("database")) {
-    return "Skill: Database";
-  }
-
-  return "Skill: General";
-}
-
-async function loadCoursesFromAPI() {
-  const coursesGrid =
-    document.getElementById("recommendedCoursesGrid");
-
-  if (!coursesGrid) return;
-
-  try {
-    const response =
-      await fetch(`${API_BASE_URL}/courses`);
-
-    if (!response.ok) {
-      throw new Error(
-        `Failed to fetch courses: ${response.status}`
-      );
-    }
-
-    const courses = await response.json();
-
-    if (!Array.isArray(courses) || courses.length === 0) {
-
-      coursesGrid.innerHTML = `
-        <div class="dash-course-card" data-searchable>
-          <div>
-            <span class="dash-course-tag">
-              Courses
-            </span>
-
-            <h3 class="dash-course-title">
-              No courses available
-            </h3>
-
-            <p class="dash-course-desc">
-              No courses are currently available.
-            </p>
-          </div>
-        </div>
-      `;
-
-      return;
-    }
-
-    coursesGrid.innerHTML = courses.map(course => `
-
-      <div class="dash-course-card" data-searchable>
-
-        <div>
-
-          <span class="dash-course-tag">
-            ${escapeHTML(
-              getCourseSkillLabel(course.title)
-            )}
-          </span>
-
-          <h3 class="dash-course-title">
-            ${escapeHTML(course.title)}
-          </h3>
-
-          <p class="dash-course-desc">
-            ${escapeHTML(course.description)}
-          </p>
-
-        </div>
-
-        <div>
-
-          <div class="dash-course-meta-row">
-
-            <span>
-              Difficulty:
-              <strong>
-                ${escapeHTML(course.difficulty)}
-              </strong>
-            </span>
-
-            <span>
-              Duration:
-              <strong>
-                ${escapeHTML(course.duration)}
-              </strong>
-            </span>
-
-          </div>
-
-          <button
-            type="button"
-            class="btn btn-primary btn-sm"
-            style="width: 100%;"
-            onclick="handleCourseEnroll(${course.id}, this)"
-          >
-            Enroll in Course
-          </button>
-
-        </div>
-
-      </div>
-
-    `).join("");
-
-  } catch (error) {
-
-    console.error(
-      "Error loading courses:",
-      error
-    );
-
-    coursesGrid.innerHTML = `
-      <div class="dash-course-card" data-searchable>
-        <div>
-
-          <span class="dash-course-tag">
-            Error
-          </span>
-
-          <h3 class="dash-course-title">
-            Unable to load courses
-          </h3>
-
-          <p class="dash-course-desc">
-            Please refresh the dashboard and try again.
-          </p>
-
-        </div>
-      </div>
-    `;
-  }
-}
-
 const TRAINEE_DATA = {
   profile: {
     name: "Muneeb Ahmad",
@@ -425,7 +273,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initModalHandlers();
   initTiltCardsDashboard();
   initFeedbackForm();
-  loadCoursesFromAPI()
+  loadCoursesAndEnrollments();
 });
 
 /* --------------------------------------------------------------------------
@@ -970,15 +818,25 @@ function saveEditedProfile() {
    8. Capability B & C: Enrolled Courses & Learning Resources Modal
    -------------------------------------------------------------------------- */
 function handleContinueLearning(courseId) {
-  const course = TRAINEE_DATA.enrolledCourses.find(c => c.id === courseId);
+  const numericId = parseInt(courseId, 10);
+  const enrolledItem = (apiEnrollments || []).find(e => Number(e.course_id || (e.course && e.course.id)) === numericId);
+  const course = (enrolledItem && enrolledItem.course)
+    || (apiCourses || []).find(c => c.id === numericId)
+    || TRAINEE_DATA.enrolledCourses.find(c => c.id === courseId);
   if (!course) return;
 
-  showToast(`Resuming "${course.title}" at ${course.currentModule}...`, 'info');
+  showToast(`Resuming "${course.title}" at ${course.currentModule || 'Module 1'}...`, 'info');
 }
 
 function handleAccessResources(courseId) {
+  const numericId = parseInt(courseId, 10);
+  const enrolledItem = (apiEnrollments || []).find(e => Number(e.course_id || (e.course && e.course.id)) === numericId);
+  const course = (enrolledItem && enrolledItem.course)
+    || (apiCourses || []).find(c => c.id === numericId)
+    || TRAINEE_DATA.enrolledCourses.find(c => c.id === courseId);
+
   const resourceData = TRAINEE_DATA.courseResources[courseId] || {
-    courseName: "Selected Course",
+    courseName: course ? course.title : "Selected Course",
     resources: [
       { type: "lecture", title: "Recorded Video Lecture", format: "HD Video &bull; 45 mins", icon: "🎥" },
       { type: "slides", title: "Lecture Presentation Slides", format: "PDF &bull; 35 slides", icon: "📊" },
@@ -2293,39 +2151,279 @@ function setModalRating(stars) {
    11. Other Action Handlers (Enroll, View Trainer, Certificates, Reassess)
    -------------------------------------------------------------------------- */
 
-// Enroll Action
-function handleCourseEnroll(courseId, buttonElem) {
+/* --------------------------------------------------------------------------
+   Course & Enrollment API Integration
+   -------------------------------------------------------------------------- */
+const API_BASE_URL = "https://capacity-connect-backend-ejbl.onrender.com";
+let apiCourses = [];
+let apiEnrollments = [];
 
+function applyEnrolledStyle(buttonElem) {
   if (!buttonElem) return;
+  buttonElem.dataset.enrolled = "true";
+  buttonElem.textContent = "✓ Enrolled";
+  buttonElem.classList.remove('btn-primary');
+  buttonElem.classList.add('btn-secondary');
+  buttonElem.style.borderColor = 'var(--accent-emerald)';
+  buttonElem.style.color = 'var(--accent-emerald)';
+}
 
-  if (buttonElem.dataset.enrolled === "true") {
+async function loadCoursesAndEnrollments() {
+  const userId = localStorage.getItem("userId");
 
-    showToast(
-      "You are already enrolled in this course.",
-      "info"
-    );
+  // 1. Load Courses from API (GET /courses)
+  try {
+    const resCourses = await fetch(`${API_BASE_URL}/courses`);
+    if (resCourses.ok) {
+      apiCourses = await resCourses.json();
+    }
+  } catch (err) {
+    console.error("Failed to load courses from API:", err);
+  }
 
+  // Fallback courses with real database IDs if API request fails
+  if (!apiCourses || apiCourses.length === 0) {
+    apiCourses = [
+      {
+        id: 7,
+        title: "Introduction to Artificial Intelligence",
+        description: "Master foundational AI principles, search algorithms, heuristic evaluation, and knowledge representation designed to bridge early ML gaps.",
+        difficulty: "Beginner",
+        duration: "6 Weeks",
+        skill: "AI / ML"
+      },
+      {
+        id: 8,
+        title: "Machine Learning Fundamentals",
+        description: "Learn supervised learning, regression, classification, decision trees, and model evaluation techniques with hands-on Python notebooks.",
+        difficulty: "Intermediate",
+        duration: "8 Weeks",
+        skill: "AI / ML"
+      },
+      {
+        id: 9,
+        title: "Database Management Essentials",
+        description: "Relational schema modeling, normalization, advanced SQL queries, indexing strategies, and database concurrency optimization.",
+        difficulty: "Beginner",
+        duration: "4 Weeks",
+        skill: "Database"
+      }
+    ];
+  }
+
+  // 2. Load Existing User Enrollments from API (GET /enrollments/{user_id})
+  if (userId) {
+    try {
+      const resEnroll = await fetch(`${API_BASE_URL}/enrollments/${userId}`);
+      if (resEnroll.ok) {
+        apiEnrollments = await resEnroll.json();
+      }
+    } catch (err) {
+      console.error("Failed to load user enrollments:", err);
+    }
+  }
+
+  renderRecommendedCourses();
+  renderMyCourses();
+}
+
+function renderRecommendedCourses() {
+  const container = document.getElementById('recommendedCoursesGrid') || document.querySelector('#recommended-courses-section .dash-courses-grid');
+  if (!container) return;
+
+  const enrolledCourseIds = new Set((apiEnrollments || []).map(e => Number(e.course_id || (e.course && e.course.id))));
+
+  if (apiCourses && apiCourses.length > 0) {
+    container.innerHTML = apiCourses.map(course => {
+      const isEnrolled = enrolledCourseIds.has(Number(course.id));
+      const skillName = course.skill || (course.title && course.title.toLowerCase().includes('database') ? 'Database' : 'AI / ML');
+      const isDb = skillName.toLowerCase().includes('database');
+      const tagStyle = isDb ? ' style="background: rgba(6,182,212,0.12); color: var(--accent-cyan); border-color: rgba(6,182,212,0.3);"' : '';
+
+      return `
+        <div class="dash-course-card" data-searchable>
+          <div>
+            <span class="dash-course-tag"${tagStyle}>Skill: ${skillName}</span>
+            <h3 class="dash-course-title">${course.title}</h3>
+            <p class="dash-course-desc">${course.description}</p>
+          </div>
+          <div>
+            <div class="dash-course-meta-row">
+              <span>Difficulty: <strong>${course.difficulty || 'Beginner'}</strong></span>
+              <span>Duration: <strong>${course.duration || '6 Weeks'}</strong></span>
+            </div>
+            <button 
+              type="button" 
+              class="btn ${isEnrolled ? 'btn-secondary' : 'btn-primary'} btn-sm" 
+              style="width: 100%;${isEnrolled ? ' border-color: var(--accent-emerald); color: var(--accent-emerald);' : ''}" 
+              data-course-id="${course.id}"
+              ${isEnrolled ? 'data-enrolled="true"' : ''}
+              onclick="handleCourseEnroll(${course.id}, this)">
+              ${isEnrolled ? '✓ Enrolled' : 'Enroll in Course'}
+            </button>
+          </div>
+        </div>
+      `;
+    }).join('');
+  } else {
+    // If cards were rendered statically, sync button states
+    container.querySelectorAll('button[data-course-id]').forEach(btn => {
+      const cId = Number(btn.dataset.courseId);
+      if (enrolledCourseIds.has(cId)) {
+        applyEnrolledStyle(btn);
+      }
+    });
+  }
+
+  initTiltCardsDashboard();
+}
+
+function renderMyCourses() {
+  const container = document.getElementById('myCoursesGrid');
+  if (!container) return;
+
+  if (!apiEnrollments || apiEnrollments.length === 0) {
+    container.innerHTML = `
+      <div style="grid-column: 1 / -1; text-align: center; padding: 40px 20px; background: var(--bg-card); border: 1px dashed var(--border-subtle); border-radius: 20px;" data-searchable>
+        <div style="font-size: 2rem; margin-bottom: 10px;">📚</div>
+        <h4 style="font-size: 1.1rem; color: #fff; margin-bottom: 6px;">No Enrolled Courses Yet</h4>
+        <p style="font-size: 0.88rem; color: var(--text-secondary); max-width: 440px; margin: 0 auto 16px;">
+          You haven't enrolled in any courses yet. Select a recommended course below to start learning.
+        </p>
+        <a href="#recommended-courses-section" class="btn btn-outline btn-sm">Explore Recommended Courses &darr;</a>
+      </div>
+    `;
     return;
   }
 
-  buttonElem.dataset.enrolled = "true";
+  container.innerHTML = apiEnrollments.map(item => {
+    const course = item.course || apiCourses.find(c => c.id == item.course_id) || {
+      id: item.course_id,
+      title: `Course #${item.course_id}`,
+      description: "Enrolled active course module.",
+      difficulty: "Beginner",
+      duration: "6 Weeks"
+    };
 
-  buttonElem.textContent = "✓ Enrolled";
+    const skillName = course.skill || (course.title && course.title.toLowerCase().includes('database') ? 'Database' : 'AI / ML');
+    const isDb = skillName.toLowerCase().includes('database');
+    const tagStyle = isDb ? ' style="background: rgba(6,182,212,0.12); color: var(--accent-cyan); border-color: rgba(6,182,212,0.3);"' : '';
 
-  buttonElem.classList.remove("btn-primary");
+    return `
+      <div class="dash-course-card" data-searchable>
+        <div>
+          <span class="dash-course-tag"${tagStyle}>Skill: ${skillName}</span>
+          <h3 class="dash-course-title">${course.title}</h3>
+          <p class="dash-course-desc">${course.description || 'Active enrolled curriculum covering core and advanced concepts.'}</p>
+        </div>
+        <div>
+          <div class="dash-course-meta-row">
+            <span>Difficulty: <strong>${course.difficulty || 'Beginner'}</strong></span>
+            <span>Duration: <strong>${course.duration || '6 Weeks'}</strong></span>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button type="button" class="btn btn-outline btn-sm" style="flex: 1;" onclick="handleContinueLearning(${course.id})">
+              Resume Learning &rarr;
+            </button>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="handleAccessResources(${course.id})">
+              Resources 📁
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
 
-  buttonElem.classList.add("btn-secondary");
+  initTiltCardsDashboard();
+}
 
-  buttonElem.style.borderColor =
-    "var(--accent-emerald)";
+// Enroll Action
+async function handleCourseEnroll(courseId, buttonElem) {
+  // Prevent double-clicking while the request is being sent
+  if (buttonElem.disabled || buttonElem.dataset.loading === "true") {
+    return;
+  }
 
-  buttonElem.style.color =
-    "var(--accent-emerald)";
+  if (buttonElem.dataset.enrolled === "true") {
+    showToast("You are already enrolled in this course.", 'info');
+    return;
+  }
 
-  showToast(
-    `Course #${courseId} added to your learning plan!`,
-    "success"
-  );
+  // 1. Get the logged-in user UUID
+  const userId = localStorage.getItem("userId");
+
+  // 2. If userId is missing, show an error toast and stop
+  if (!userId) {
+    showToast("User session not found. Please log in to enroll.", 'error');
+    return;
+  }
+
+  // Identify course from API-loaded courses
+  const numericCourseId = parseInt(courseId, 10);
+  const course = apiCourses.find(c => c.id === numericCourseId) || { id: numericCourseId, title: `Course #${numericCourseId}` };
+
+  // 8. Prevent double-clicking while request is being sent
+  buttonElem.disabled = true;
+  buttonElem.dataset.loading = "true";
+  const originalText = buttonElem.textContent;
+  buttonElem.textContent = "Enrolling...";
+
+  try {
+    // 3. Send POST https://capacity-connect-backend-ejbl.onrender.com/enrollments
+    const response = await fetch(`${API_BASE_URL}/enrollments`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        user_id: userId,
+        course_id: course.id
+      })
+    });
+
+    const data = await response.json().catch(() => null);
+
+    // 5. If response.status === 201:
+    if (response.status === 201) {
+      applyEnrolledStyle(buttonElem);
+      showToast(`Successfully enrolled in "${course.title}"!`, 'success');
+
+      // Update local enrollments and refresh My Courses
+      const newEnrollment = (data && data.enrollment) ? { ...data.enrollment, course } : { course_id: course.id, course };
+      if (!apiEnrollments.some(e => Number(e.course_id || (e.course && e.course.id)) === Number(course.id))) {
+        apiEnrollments.push(newEnrollment);
+      }
+      renderMyCourses();
+      return;
+    }
+
+    // 6. If response.status === 409:
+    if (response.status === 409) {
+      applyEnrolledStyle(buttonElem);
+      showToast("You are already enrolled in this course.", 'info');
+
+      if (!apiEnrollments.some(e => Number(e.course_id || (e.course && e.course.id)) === Number(course.id))) {
+        apiEnrollments.push({ course_id: course.id, course });
+        renderMyCourses();
+      }
+      return;
+    }
+
+    // 7. For other errors: DO NOT mark the course as enrolled, show error toast
+    const errorMsg = (data && (data.detail || data.message)) || "Failed to enroll in course. Please try again.";
+    showToast(errorMsg, 'error');
+    buttonElem.textContent = originalText;
+
+  } catch (err) {
+    console.error("Enrollment request failed:", err);
+    showToast("Network error while connecting to enrollment service.", 'error');
+    buttonElem.textContent = originalText;
+  } finally {
+    buttonElem.dataset.loading = "false";
+    if (buttonElem.dataset.enrolled !== "true") {
+      buttonElem.disabled = false;
+    }
+  }
 }
 
 // View Trainer Modal
