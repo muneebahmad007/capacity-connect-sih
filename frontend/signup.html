@@ -31,11 +31,6 @@
     </div>
 
     <!-- Role Selection Tabs -->
-    <div class="auth-role-tabs" id="signupRoleTabs">
-      <button type="button" class="role-tab-btn active" data-role="trainee">&#127891; Trainee</button>
-      <button type="button" class="role-tab-btn" data-role="trainer">&#128104;&#8205;&#127979; Trainer</button>
-      <button type="button" class="role-tab-btn" data-role="admin">&#128202; Admin</button>
-    </div>
 
     <form id="signupForm">
       <div class="form-group">
@@ -88,17 +83,7 @@
 
   <script src="js/script.js"></script>
   <script>
-    const roleBtns = document.querySelectorAll('#signupRoleTabs .role-tab-btn');
-    let selectedRole = 'trainee';
 
-    roleBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        roleBtns.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        selectedRole = btn.dataset.role;
-        showToast(`Selected role: ${selectedRole.toUpperCase()}`, 'info');
-      });
-    });
 
     document.getElementById('signupForm').addEventListener('submit', (e) => {
       e.preventDefault();

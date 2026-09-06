@@ -84,6 +84,7 @@
 
   <script src="js/script.js"></script>
   <script>
+    const API_BASE_URL = "https://capacity-connect-backend-ejbl.onrender.com";
     // Role tabs logic
     const roleTabs = document.querySelectorAll('.role-tab-btn');
     const demoLabel = document.getElementById('demoRoleLabel');
@@ -114,13 +115,89 @@
       showToast(`Autofilled demo credentials for ${currentRole.toUpperCase()}`, 'success');
     });
 
-    document.getElementById('loginForm').addEventListener('submit', (e) => {
-      e.preventDefault();
-      showToast(`Authenticated successfully as ${currentRole.toUpperCase()}! Redirecting...`, 'success');
-      setTimeout(() => {
-        window.location.href = 'index.html#features';
-      }, 1200);
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  const email = emailInput.value.trim();
+  const password = passInput.value;
+
+  if (!email || !password) {
+    showToast('Please enter your email and password.', 'error');
+    return;
+  }
+
+  const submitBtn = document.querySelector('#loginForm button[type="submit"]');
+  const originalText = submitBtn.innerHTML;
+
+  submitBtn.disabled = true;
+  submitBtn.innerHTML = 'Signing In...';
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        email: email,
+        password: password
+      })
     });
+
+    const data = await response.json();
+
+    if (response.status === 403) {
+      alert("Your account is pending admin approval.");
+      return;
+    }
+
+    if (!response.ok) {
+      alert(data.detail || "Login failed");
+      return;
+    }
+
+    // Backend has authenticated the user
+    const user = data.user;
+
+    // Store keys exactly matching backend response capitalization
+    localStorage.setItem('authToken', data.access_token);
+    localStorage.setItem('userId', user.id);
+    localStorage.setItem('userRole', user.role);
+    localStorage.setItem('userName', user.Name);   // Capital 'N'
+    localStorage.setItem('userEmail', user.Email); // Capital 'E'
+
+    showToast('Login successful! Redirecting...', 'success');
+
+    setTimeout(() => {
+
+      if (user.role === 'trainee') {
+        window.location.href = 'trainee-dashboard.html';
+
+      } else if (user.role === 'trainer') {
+        window.location.href = 'trainer-dashboard.html';
+
+      } else if (user.role === 'admin') {
+        window.location.href = 'admin-dashboard.html';
+
+      } else {
+        showToast('Unknown user role.', 'error');
+      }
+
+    }, 800);
+
+  } catch (error) {
+
+    console.error('Login error:', error);
+
+    showToast(error.message || 'Unable to connect to the server.', 'error');
+
+  } finally {
+
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = originalText;
+
+  }
+});
   </script>
 </body>
 </html>

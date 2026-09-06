@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Create Profile | CAPACITY CONNECT</title>
+<link rel="icon" href="assets/favicon.ico" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="css/create-profile.css" />
+</head>
+<body>
+
+<div class="bg-blur-wrap"><div class="bg-blur-a"></div><div class="bg-blur-b"></div></div>
+
+<!-- ===================== CREATE PROFILE SCREEN ===================== -->
+<div id="profileScreen">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a href="index.html" class="brand-link" aria-label="Capacity Connect home">
+        <span class="brand-icon"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></svg></span>
+        <span><strong class="brand-text-lg">CAPACITY <span>CONNECT</span></strong><span class="brand-tag">BUILD SKILLS. GROW CAPACITY.</span></span>
+      </a>
+      <div class="header-right">
+        <span class="muted">Already have an account?</span>
+        <a href="login.html" class="login-link">Login <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-main">
+    <div class="hero">
+      <div class="eyebrow-pill"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3z"/></svg> Profile Setup</div>
+      <h1>Complete Your <span class="gradient-text">Profile</span></h1>
+      <p>Tell us about yourself so CAPACITY CONNECT can personalize your learning journey.</p>
+    </div>
+
+    <div class="progress-steps">
+      <div class="step"><div class="step-icon done"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div><span class="step-label done">Account Created</span></div>
+      <div class="step"><div class="step-icon active"><span class="step-dot"></span></div><span class="step-label active">Create Profile</span></div>
+      <div class="step"><div class="step-icon"><span class="step-dot"></span></div><span class="step-label">Admin Approval</span></div>
+    </div>
+
+    <form id="profileForm" novalidate>
+
+      <!-- Photo -->
+      <section class="profile-card section-card">
+        <div class="photo-row">
+          <div class="photo-frame-wrap">
+            <div class="photo-frame" id="photoFrame"><svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg></div>
+            <label for="photoInput" class="photo-upload-btn" aria-label="Upload profile photo"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg><input id="photoInput" type="file" accept="image/png,image/jpeg" class="sr-only" /></label>
+          </div>
+          <div class="photo-meta">
+            <h2>Upload Profile Photo <span class="opt">(Optional)</span></h2>
+            <p>A friendly photo helps people connect with you.<br />JPG or PNG &middot; Max 2MB</p>
+            <button type="button" id="removePhotoBtn" class="remove-photo-btn hidden">Remove photo</button>
+            <p id="photoError" class="photo-error hidden"></p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Personal information -->
+      <section class="profile-card section-card">
+        <div class="section-head"><h2>Personal Information</h2><p>A few details to help us create your profile.</p></div>
+        <div class="form-row">
+          <div>
+            <div class="field-label-row"><label class="field-label" for="fullName">Full Name<span class="req">*</span></label></div>
+            <input id="fullName" class="field" placeholder="Enter your full name" />
+            <p class="field-error hidden" id="err-fullName"></p>
+          </div>
+          <div>
+            <div class="field-label-row"><label class="field-label" for="email">Email Address<span class="req">*</span></label><span class="field-hint">From your account</span></div>
+            <input id="email" type="email" class="field" placeholder="you@example.com" />
+            <p class="field-error hidden" id="err-email"></p>
+          </div>
+          <div>
+            <div class="field-label-row"><label class="field-label" for="phone">Phone Number</label><span class="field-hint">Optional</span></div>
+            <input id="phone" type="tel" class="field" placeholder="Enter your phone number" />
+          </div>
+          <div>
+            <div class="field-label-row"><label class="field-label" for="roleTrainee">Your Role</label></div>
+            <div class="role-toggle">
+              <button type="button" class="role-btn active" id="roleTraineeBtn" data-role="trainee"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></svg> Trainee</button>
+              <button type="button" class="role-btn" id="roleTrainerBtn" data-role="trainer"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Trainer</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Education -->
+      <section class="profile-card section-card">
+        <div class="section-head"><h2>Education &amp; Professional Background</h2><p>Share where you are building your knowledge and experience.</p></div>
+        <div class="form-row">
+          <div>
+            <div class="field-label-row"><label class="field-label" for="qualification">Highest Qualification<span class="req">*</span></label></div>
+            <div class="select-wrap">
+              <select id="qualification" class="field placeholder">
+                <option value="">Select your qualification</option>
+                <option>High School</option><option>Diploma</option><option>Bachelor's Degree</option><option>Master's Degree</option><option>PhD</option><option>Other</option>
+              </select>
+              <svg class="select-chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+            </div>
+            <p class="field-error hidden" id="err-qualification"></p>
+          </div>
+          <div>
+            <div class="field-label-row"><label class="field-label" for="organization">College / Organization</label><span class="field-hint">Optional</span></div>
+            <input id="organization" class="field" placeholder="Enter your college or organization" />
+          </div>
+        </div>
+      </section>
+
+      <!-- Trainee-only: Learning Profile -->
+      <section class="profile-card section-card" id="traineeLearningSection">
+        <div class="section-head"><h2>Learning Profile</h2><p>Help us understand where you want to go next.</p></div>
+        <div class="field-stack">
+          <div>
+            <div class="field-label-row"><label class="field-label" for="workExperience">Work Experience</label></div>
+            <div class="select-wrap">
+              <select id="workExperience" class="field placeholder">
+                <option value="">Select your experience</option>
+                <option>Student / Fresher</option><option>Less than 1 year</option><option>1&ndash;2 years</option><option>2&ndash;5 years</option><option>5+ years</option>
+              </select>
+              <svg class="select-chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+            </div>
+          </div>
+          <div>
+            <p class="chip-group-label">Learning Interests</p>
+            <div class="chip-row" id="interestsChips"></div>
+          </div>
+          <div>
+            <div class="field-label-row"><label class="field-label" for="learningGoals">Learning Goals</label><span class="field-hint">Optional</span></div>
+            <textarea id="learningGoals" class="field" placeholder="What skills or knowledge would you like to develop?"></textarea>
+          </div>
+        </div>
+      </section>
+
+      <!-- Trainee-only: Skills -->
+      <section class="profile-card section-card" id="traineeSkillsSection">
+        <div class="section-head"><h2>Your Skills</h2><p>Select the skills you currently have. Your actual competency level will be measured through assessments.</p></div>
+        <p class="chip-group-label">Self-declared skills</p>
+        <div class="chip-row" id="skillsChips"></div>
+        <div class="custom-skill-row">
+          <input id="customSkillInput" class="field" placeholder="Add a custom skill" />
+          <button type="button" id="addSkillBtn" class="add-skill-btn" aria-label="Add skill"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button>
+        </div>
+        <div class="info-note"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg> Self-declared skills are not competency scores.</div>
+      </section>
+
+      <!-- Trainer-only: Trainer Information -->
+      <section class="profile-card section-card hidden" id="trainerSection">
+        <div class="section-head"><h2>Trainer Information</h2><p>Help learners discover how your experience can support their growth.</p></div>
+        <div class="field-stack">
+          <div>
+            <p class="chip-group-label">Areas of expertise</p>
+            <div class="chip-row" id="expertiseChips"></div>
+          </div>
+          <div class="form-row">
+            <div>
+              <div class="field-label-row"><label class="field-label" for="specialization">Specialization</label></div>
+              <input id="specialization" class="field" placeholder="Enter your area of specialization" />
+            </div>
+            <div>
+              <div class="field-label-row"><label class="field-label" for="experienceYears">Years of Experience</label></div>
+              <div class="select-wrap">
+                <select id="experienceYears" class="field placeholder">
+                  <option value="">Select experience</option>
+                  <option>0&ndash;1 years</option><option>2&ndash;3 years</option><option>4&ndash;5 years</option><option>6&ndash;10 years</option><option>10+ years</option>
+                </select>
+                <svg class="select-chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="field-label-row"><label class="field-label" for="availability">Availability</label></div>
+            <div class="select-wrap">
+              <select id="availability" class="field placeholder">
+                <option value="">Select availability</option>
+                <option>Available</option><option>Limited Availability</option><option>Currently Unavailable</option>
+              </select>
+              <svg class="select-chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+            </div>
+          </div>
+          <div>
+            <div class="field-label-row"><label class="field-label" for="professionalBackground">Professional Background</label></div>
+            <textarea id="professionalBackground" class="field" placeholder="Describe your professional background, teaching experience and areas of expertise..."></textarea>
+          </div>
+        </div>
+      </section>
+
+      <!-- About you -->
+      <section class="profile-card section-card">
+        <div class="section-head"><h2>About You</h2><p>This short introduction will help others get to know you.</p></div>
+        <div class="field-label-row"><label class="field-label" for="bio">Bio</label><span class="field-hint" id="bioCount">0 / 300</span></div>
+        <textarea id="bio" class="field" maxlength="300" placeholder="Tell us briefly about your background, interests and goals..."></textarea>
+      </section>
+
+      <!-- Completion -->
+      <section class="profile-card section-card">
+        <div class="completion-head">
+          <div><h2>Profile Completion</h2><p>A complete profile leads to better recommendations.</p></div>
+          <span class="completion-pct" id="completionPct">0%</span>
+        </div>
+        <div class="completion-track"><div class="completion-fill" id="completionFill" style="width:0%"></div></div>
+        <div class="completion-note"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-2.5 1.5-2.5 3.5"/><path d="M12 17h.01"/></svg> Your profile is reviewed by an administrator before you access the platform.</div>
+      </section>
+
+      <div class="form-actions">
+        <button type="button" class="skip-btn" id="skipBtn">Skip for now</button>
+        <button type="submit" class="submit-btn" id="submitBtn">
+          <span id="submitBtnText">Create Profile &amp; Continue</span>
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+        </button>
+      </div>
+    </form>
+  </main>
+</div>
+
+<!-- ===================== SUCCESS SCREEN ===================== -->
+<div id="successScreen" class="success-screen hidden">
+  <div class="profile-card success-card">
+    <div class="success-icon"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
+    <p class="success-eyebrow">Profile Completed &#10003;</p>
+    <h1>Profile Created Successfully</h1>
+    <p>Your profile has been submitted for review. An administrator will approve your account before you can access the platform.</p>
+    <div class="pending-box">
+      <p class="t">Admin Approval Pending &#9679;</p>
+      <p class="d">We&rsquo;ll let you know when your account is ready.</p>
+    </div>
+    <button type="button" class="continue-btn" id="continueBtn">Continue <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
+  </div>
+</div>
+
+<!-- ===================== SKIP DIALOG ===================== -->
+<div id="skipOverlay" class="modal-overlay hidden">
+  <div class="profile-card skip-dialog" role="dialog" aria-modal="true">
+    <button type="button" class="skip-dialog-close" id="skipDialogClose" aria-label="Close"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+    <div class="skip-dialog-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg></div>
+    <h2>Skip profile setup?</h2>
+    <p>Your account is created, but completing your profile is recommended before accessing the platform. You can continue to the approval page and finish later.</p>
+    <div class="skip-dialog-actions">
+      <button type="button" class="skip-keep-btn" id="skipKeepBtn">Keep editing</button>
+      <button type="button" class="skip-continue-btn" id="skipContinueBtn">Continue anyway</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/create-profile.js"></script>
+</body>
+</html>

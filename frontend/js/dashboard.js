@@ -14,6 +14,158 @@
    1. Structured Trainee Prototype Data
    (Easily replaceable with Supabase / REST API endpoints later)
    -------------------------------------------------------------------------- */
+const API_BASE_URL = "https://capacity-connect-backend-ejbl.onrender.com";
+
+function escapeHTML(value) {
+  const div = document.createElement("div");
+  div.textContent = value ?? "";
+  return div.innerHTML;
+}
+
+function getCourseSkillLabel(title) {
+  const normalizedTitle = (title || "").toLowerCase();
+
+  if (
+    normalizedTitle.includes("artificial intelligence") ||
+    normalizedTitle.includes("machine learning")
+  ) {
+    return "Skill: AI / ML";
+  }
+
+  if (normalizedTitle.includes("database")) {
+    return "Skill: Database";
+  }
+
+  return "Skill: General";
+}
+
+async function loadCoursesFromAPI() {
+  const coursesGrid =
+    document.getElementById("recommendedCoursesGrid");
+
+  if (!coursesGrid) return;
+
+  try {
+    const response =
+      await fetch(`${API_BASE_URL}/courses`);
+
+    if (!response.ok) {
+      throw new Error(
+        `Failed to fetch courses: ${response.status}`
+      );
+    }
+
+    const courses = await response.json();
+
+    if (!Array.isArray(courses) || courses.length === 0) {
+
+      coursesGrid.innerHTML = `
+        <div class="dash-course-card" data-searchable>
+          <div>
+            <span class="dash-course-tag">
+              Courses
+            </span>
+
+            <h3 class="dash-course-title">
+              No courses available
+            </h3>
+
+            <p class="dash-course-desc">
+              No courses are currently available.
+            </p>
+          </div>
+        </div>
+      `;
+
+      return;
+    }
+
+    coursesGrid.innerHTML = courses.map(course => `
+
+      <div class="dash-course-card" data-searchable>
+
+        <div>
+
+          <span class="dash-course-tag">
+            ${escapeHTML(
+              getCourseSkillLabel(course.title)
+            )}
+          </span>
+
+          <h3 class="dash-course-title">
+            ${escapeHTML(course.title)}
+          </h3>
+
+          <p class="dash-course-desc">
+            ${escapeHTML(course.description)}
+          </p>
+
+        </div>
+
+        <div>
+
+          <div class="dash-course-meta-row">
+
+            <span>
+              Difficulty:
+              <strong>
+                ${escapeHTML(course.difficulty)}
+              </strong>
+            </span>
+
+            <span>
+              Duration:
+              <strong>
+                ${escapeHTML(course.duration)}
+              </strong>
+            </span>
+
+          </div>
+
+          <button
+            type="button"
+            class="btn btn-primary btn-sm"
+            style="width: 100%;"
+            onclick="handleCourseEnroll(${course.id}, this)"
+          >
+            Enroll in Course
+          </button>
+
+        </div>
+
+      </div>
+
+    `).join("");
+
+  } catch (error) {
+
+    console.error(
+      "Error loading courses:",
+      error
+    );
+
+    coursesGrid.innerHTML = `
+      <div class="dash-course-card" data-searchable>
+        <div>
+
+          <span class="dash-course-tag">
+            Error
+          </span>
+
+          <h3 class="dash-course-title">
+            Unable to load courses
+          </h3>
+
+          <p class="dash-course-desc">
+            Please refresh the dashboard and try again.
+          </p>
+
+        </div>
+      </div>
+    `;
+  }
+}
+
 const TRAINEE_DATA = {
   profile: {
     name: "Muneeb Ahmad",
@@ -273,6 +425,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initModalHandlers();
   initTiltCardsDashboard();
   initFeedbackForm();
+  loadCoursesFromAPI()
 });
 
 /* --------------------------------------------------------------------------
@@ -2142,22 +2295,37 @@ function setModalRating(stars) {
 
 // Enroll Action
 function handleCourseEnroll(courseId, buttonElem) {
-  const course = TRAINEE_DATA.recommendedCourses.find(c => c.id === courseId);
-  if (!course) return;
+
+  if (!buttonElem) return;
 
   if (buttonElem.dataset.enrolled === "true") {
-    showToast(`You are already enrolled in "${course.title}". Accessing study portal...`, 'info');
+
+    showToast(
+      "You are already enrolled in this course.",
+      "info"
+    );
+
     return;
   }
 
   buttonElem.dataset.enrolled = "true";
-  buttonElem.textContent = "✓ Enrolled";
-  buttonElem.classList.remove('btn-primary');
-  buttonElem.classList.add('btn-secondary');
-  buttonElem.style.borderColor = 'var(--accent-emerald)';
-  buttonElem.style.color = 'var(--accent-emerald)';
 
-  showToast(`Course "${course.title}" added to your learning plan!`, 'success');
+  buttonElem.textContent = "✓ Enrolled";
+
+  buttonElem.classList.remove("btn-primary");
+
+  buttonElem.classList.add("btn-secondary");
+
+  buttonElem.style.borderColor =
+    "var(--accent-emerald)";
+
+  buttonElem.style.color =
+    "var(--accent-emerald)";
+
+  showToast(
+    `Course #${courseId} added to your learning plan!`,
+    "success"
+  );
 }
 
 // View Trainer Modal
