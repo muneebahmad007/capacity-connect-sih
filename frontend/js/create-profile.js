@@ -248,56 +248,186 @@
   }
 
   /* ---------------- save ---------------- */
-  function saveProfile() {
-    var profile = {
-      fullName: state.fullName.trim(),
-      email: state.email.trim(),
-      phone: state.phone.trim(),
-      qualification: state.qualification,
-      organization: state.organization.trim(),
-      bio: state.bio.trim(),
-      profileImage: state.profileImage || "",
-      role: state.role,
-      trainee: {
-        workExperience: state.role === "trainee" ? state.workExperience : "",
-        learningInterests: state.role === "trainee" ? state.interests.slice() : [],
-        skills: state.role === "trainee" ? state.skills.slice() : [],
-        learningGoals: state.role === "trainee" ? state.learningGoals.trim() : "",
-      },
-      trainer: {
-        expertise: state.role === "trainer" ? state.expertise.slice() : [],
-        specialization: state.role === "trainer" ? state.specialization.trim() : "",
-        experienceYears: state.role === "trainer" ? state.experienceYears : "",
-        availability: state.role === "trainer" ? state.availability : "",
-        professionalBackground: state.role === "trainer" ? state.professionalBackground.trim() : "",
-      },
-      profileCompleted: true,
-      approvalStatus: "pending",
-    };
+  async function saveProfile() {
+    var userId =
+        localStorage.getItem("registeredUserId") ||
+        localStorage.getItem("userId");
+
+    if (!userId) {
+        alert("User ID not found. Please register again.");
+        return false;
+    }
+
+    // Role comes from the existing role toggle/state
+    var role =
+        state.role === "trainer"
+            ? "trainer"
+            : "trainee";
+
+    // Existing fields from the ACTUAL state object
+    var phone =
+        String(state.phone || "").trim();
+
+    var qualification =
+        String(state.qualification || "").trim();
+
+    var workExperience =
+        String(
+            state.workExperience ||
+            state.experienceYears ||
+            ""
+        ).trim();
+
+    // profiles.interests is TEXT, so convert selected chips to a string
+    var interests =
+        Array.isArray(state.interests)
+            ? state.interests.join(", ")
+            : String(state.interests || "").trim();
+
+    var bio =
+        String(state.bio || "").trim();
+
+    var profileImage =
+        state.profileImage || null;
+
     try {
-      localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
-    } catch (e) {
-      /* storage unavailable — the success screen still shows for this session */
+        var response = await fetch(
+            "https://capacity-connect-backend-ejbl.onrender.com/profiles",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    user_id: userId,
+                    role: role,
+                    phone: phone || null,
+                    qualification: qualification || null,
+                    work_experience: workExperience || null,
+                    interests: interests || null,
+                    bio: bio || null,
+                    profile_image: profileImage
+                })
+            }
+        );
+
+        var data = {};
+
+        try {
+            data = await response.json();
+        } catch (e) {
+            data = {};
+        }
+
+        if (!response.ok) {
+            var errorMessage =
+                data.detail ||
+                data.message ||
+                "Profile could not be saved.";
+
+            if (Array.isArray(errorMessage)) {
+                errorMessage = errorMessage
+                    .map(function (err) {
+                        return err.msg || "Invalid input";
+                    })
+                    .join(", ");
+            }
+
+            throw new Error(errorMessage);
+        }
+
+        console.log("Profile saved successfully:", data);
+
+        // Store confirmed user ID
+        if (data.user && data.user.id) {
+            localStorage.setItem(
+                "userId",
+                data.user.id
+            );
+        } else {
+            localStorage.setItem(
+                "userId",
+                userId
+            );
+        }
+
+        // Store final role returned by backend
+        if (data.user && data.user.role) {
+            localStorage.setItem(
+                "userRole",
+                data.user.role
+            );
+        } else {
+            localStorage.setItem(
+                "userRole",
+                role
+            );
+        }
+
+        // Keep existing local profile as backup
+        localStorage.setItem(
+            PROFILE_KEY,
+            JSON.stringify({
+                ...state,
+                profileCompleted: true,
+                approvalStatus: "pending"
+            })
+        );
+
+        return true;
+
+    } catch (error) {
+        console.error(
+            "Profile save error:",
+            error
+        );
+
+        alert(
+            error.message ||
+            "Unable to save profile. Please try again."
+        );
+
+        return false;
     }
   }
 
   function wireSubmit() {
-    $("profileForm").addEventListener("submit", function (e) {
-      e.preventDefault();
-      if (!validate()) {
-        var firstKey = Object.keys(state.errors)[0];
-        if (firstKey && $(firstKey)) $(firstKey).focus();
-        return;
-      }
-      state.saving = true;
-      $("submitBtn").disabled = true;
-      $("submitBtnText").textContent = "Saving Profile...";
-      window.setTimeout(function () {
-        saveProfile();
-        $("profileScreen").classList.add("hidden");
-        $("successScreen").classList.remove("hidden");
-        window.scrollTo(0, 0);
-      }, 650);
+    $("profileForm").addEventListener("submit", async function (e) {
+        e.preventDefault();
+
+        if (!validate()) {
+            var firstKey = Object.keys(state.errors)[0];
+
+            if (firstKey && $(firstKey)) {
+                $(firstKey).focus();
+            }
+
+            return;
+        }
+
+        if (state.saving) {
+            return;
+        }
+
+        state.saving = true;
+
+        $("submitBtn").disabled = true;
+        $("submitBtnText").textContent = "Saving Profile...";
+
+        var success = await saveProfile();
+
+        if (success) {
+            $("profileScreen").classList.add("hidden");
+            $("successScreen").classList.remove("hidden");
+
+            window.scrollTo(0, 0);
+        } else {
+            state.saving = false;
+
+            $("submitBtn").disabled = false;
+            $("submitBtnText").textContent =
+                "Create Profile & Start Assessment →";
+        }
     });
   }
 

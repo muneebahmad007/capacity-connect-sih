@@ -83,16 +83,111 @@
 
   <script src="js/script.js"></script>
   <script>
+const API_BASE_URL = "https://capacity-connect-backend-ejbl.onrender.com";
 
+document.getElementById("signupForm").addEventListener("submit", async function (e) {
+  e.preventDefault();
 
-    document.getElementById('signupForm').addEventListener('submit', (e) => {
-      e.preventDefault();
-      const name = document.getElementById('signupName').value;
-      showToast(`Welcome to CAPACITY CONNECT, ${name}! Profile created successfully.`, 'success');
-      setTimeout(() => {
-        window.location.href = 'index.html#mcq-assessments';
-      }, 1400);
+  const name = document.getElementById("signupName").value.trim();
+  const email = document.getElementById("signupEmail").value.trim();
+  const domain = document.getElementById("signupDomain").value;
+  const password = document.getElementById("signupPassword").value;
+  const termsAgree = document.getElementById("termsAgree");
+
+  // Basic validation
+  if (!name || !email || !password) {
+    showToast("Please fill in all required fields.", "error");
+    return;
+  }
+
+  if (termsAgree && !termsAgree.checked) {
+    showToast("Please agree to the Terms & Conditions.", "error");
+    return;
+  }
+
+  const submitButton = this.querySelector('button[type="submit"]');
+
+  if (submitButton) {
+    submitButton.disabled = true;
+    submitButton.textContent = "Creating Account...";
+  }
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/register`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        name: name,
+        email: email,
+        password: password,
+        role: "trainee"
+      })
     });
-  </script>
+
+    let data = {};
+
+    try {
+      data = await response.json();
+    } catch (_) {
+      data = {};
+    }
+
+    if (!response.ok) {
+      let errorMessage =
+        data.detail ||
+        data.message ||
+        "Registration failed. Please try again.";
+
+      // FastAPI validation errors
+      if (Array.isArray(errorMessage)) {
+        errorMessage = errorMessage
+          .map(error => error.msg || "Invalid input")
+          .join(", ");
+      }
+
+      throw new Error(errorMessage);
+    }
+
+    // Save signup information for the profile page
+    localStorage.setItem(
+      "capacityConnectSignup",
+      JSON.stringify({
+        name: name,
+        email: email,
+        role: "trainee",
+        domain: domain
+      })
+    );
+
+    localStorage.setItem("capacityConnectEmail", email);
+
+    showToast(
+      "Registration successful! Please complete your profile.",
+      "success"
+    );
+
+    // Go to profile creation
+    setTimeout(() => {
+      window.location.href = "create-profile.html";
+    }, 1200);
+
+  } catch (error) {
+    console.error("Registration error:", error);
+
+    showToast(
+      error.message || "Registration failed. Please try again.",
+      "error"
+    );
+
+  } finally {
+    if (submitButton) {
+      submitButton.disabled = false;
+      submitButton.textContent = "Create Profile & Start Assessment →";
+    }
+  }
+});
+</script>
 </body>
 </html>

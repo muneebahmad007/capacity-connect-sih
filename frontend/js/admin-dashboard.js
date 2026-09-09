@@ -144,7 +144,7 @@
 
   /* ---------------- State ---------------- */
   var state = {
-    users: load(KEYS.users, SEED_USERS),
+    users: [],
     courses: load(KEYS.courses, SEED_COURSES),
     assessments: load(KEYS.assessments, SEED_ASSESSMENTS),
     certificates: load(KEYS.certificates, SEED_CERTIFICATES),
@@ -252,6 +252,220 @@
   }
 
   /* ---------------- Render Functions ---------------- */
+
+  /* ---------------- Admin User Management API ---------------- */
+
+  var ADMIN_API_BASE_URL =
+    "https://capacity-connect-backend-ejbl.onrender.com";
+
+  function formatUserRole(role) {
+    if (!role) return "Trainee";
+
+    var normalized = String(role).toLowerCase();
+
+    if (normalized === "trainer") return "Trainer";
+    if (normalized === "admin") return "Admin";
+
+    return "Trainee";
+  }
+
+  function formatUserStatus(isApproved) {
+    return isApproved ? "Active" : "Pending Approval";
+  }
+
+  function getUserInitials(name) {
+    var value = String(name || "").trim();
+
+    if (!value) return "U";
+
+    var parts = value.split(/\s+/);
+
+    if (parts.length === 1) {
+      return parts[0].substring(0, 2).toUpperCase();
+    }
+
+    return (
+      parts[0].charAt(0) +
+      parts[parts.length - 1].charAt(0)
+    ).toUpperCase();
+  }
+
+  function getUserAvatarColor(role) {
+    var normalized = String(role || "").toLowerCase();
+
+    if (normalized === "trainer") return "violet";
+    if (normalized === "admin") return "blue";
+
+    return "cyan";
+  }
+
+  function formatJoinedDate(createdAt) {
+    if (!createdAt) return "—";
+
+    var date = new Date(createdAt);
+
+    if (isNaN(date.getTime())) {
+      return "—";
+    }
+
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "2-digit",
+      year: "numeric"
+    });
+  }
+
+  function normalizeAdminUser(user) {
+    var role = formatUserRole(user.role);
+
+    return {
+      id: user.id,
+      name: user.Name || "Unnamed User",
+      initials: getUserInitials(user.Name),
+      email: user.Email || "—",
+      role: role,
+      status: formatUserStatus(user.is_approved),
+      joined: formatJoinedDate(user.created_at),
+      color: getUserAvatarColor(role),
+      score: 0
+    };
+  }
+
+  async function loadAdminUsers(endpoint) {
+    endpoint =
+      endpoint ||
+      ADMIN_API_BASE_URL + "/admin/users";
+
+    try {
+      var response = await fetch(endpoint);
+
+      if (!response.ok) {
+        throw new Error(
+          "User API returned " + response.status
+        );
+      }
+
+      var data = await response.json();
+
+      if (!Array.isArray(data)) {
+        throw new Error("Invalid users response from backend.");
+      }
+
+      state.users = data.map(normalizeAdminUser);
+
+      renderUsersTable();
+
+      console.log(
+        "Admin users loaded from backend:",
+        state.users
+      );
+
+      return true;
+
+    } catch (error) {
+      console.error(
+        "Failed to load admin users:",
+        error
+      );
+
+      state.users = [];
+
+      renderUsersTable();
+
+      showToast(
+        "Unable to load users from backend."
+      );
+
+      return false;
+    }
+  }
+
+  async function loadPendingAdminUsers() {
+    return loadAdminUsers(
+      ADMIN_API_BASE_URL + "/admin/users/pending"
+    );
+  }
+
+  async function approveAdminUser(userId, button) {
+    if (!userId) return;
+
+    if (button) {
+      button.disabled = true;
+      button.textContent = "Approving...";
+    }
+
+    try {
+      var response = await fetch(
+        ADMIN_API_BASE_URL +
+          "/admin/users/" +
+          encodeURIComponent(userId) +
+          "/approve",
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            is_approved: true
+          })
+        }
+      );
+
+      var data = {};
+
+      try {
+        data = await response.json();
+      } catch (e) {
+        data = {};
+      }
+
+      if (!response.ok) {
+        var errorMessage =
+          data.detail ||
+          data.message ||
+          "User approval failed.";
+
+        if (Array.isArray(errorMessage)) {
+          errorMessage = errorMessage
+            .map(function (err) {
+              return err.msg || "Invalid request";
+            })
+            .join(", ");
+        }
+
+        throw new Error(errorMessage);
+      }
+
+      console.log(
+        "User approved successfully:",
+        data
+      );
+
+      showToast("User approved successfully.");
+
+      /*
+      * Reload from backend so the UI reflects
+      * the actual Supabase state.
+      */
+      await loadAdminUsers();
+
+    } catch (error) {
+      console.error(
+        "Failed to approve user:",
+        error
+      );
+
+      showToast(
+        error.message ||
+        "Unable to approve user."
+      );
+
+      if (button) {
+        button.disabled = false;
+        button.textContent = "Approve";
+      }
+    }
+  }
 
   // 1. Dashboard Competency Bars (Section 3)
   function renderCompetencyBars() {
@@ -962,8 +1176,138 @@
     showToast("CSV Report generated and downloaded successfully.");
   }
 
+    /* =========================================================
+    ADMIN DASHBOARD API STATS
+    ========================================================= */
+
+  var ADMIN_API_BASE_URL =
+    "https://capacity-connect-backend-ejbl.onrender.com";
+
+  async function loadAdminDashboardStats() {
+    try {
+      var response = await fetch(
+        ADMIN_API_BASE_URL + "/admin/dashboard/stats"
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          "Dashboard API returned " + response.status
+        );
+      }
+
+      var data = await response.json();
+
+      console.log("Admin Dashboard API Stats:", data);
+
+      /* -------------------------
+        KPI CARDS
+        ------------------------- */
+
+      var trainees =
+        document.getElementById("adminTotalTrainees");
+
+      var trainers =
+        document.getElementById("adminTotalTrainers");
+
+      var courses =
+        document.getElementById("adminActiveCourses");
+
+      var assessments =
+        document.getElementById("adminAssessmentsCompleted");
+
+      var averageScore =
+        document.getElementById("adminAverageScore");
+
+      var certificates =
+        document.getElementById("adminCertificatesIssued");
+
+      /* -------------------------
+        UPDATE VALUES
+        ------------------------- */
+
+      if (trainees) {
+        trainees.textContent =
+          data.total_trainees ?? 0;
+      }
+
+      if (trainers) {
+        trainers.textContent =
+          data.total_trainers ?? 0;
+      }
+
+      if (courses) {
+        courses.textContent =
+          data.total_courses ?? 0;
+      }
+
+      if (assessments) {
+        assessments.textContent =
+          data.assessment_attempts ?? 0;
+      }
+
+      if (averageScore) {
+        averageScore.textContent =
+          (data.average_score ?? 0) + "%";
+      }
+
+      if (certificates) {
+        certificates.textContent =
+          data.total_certificates ?? 0;
+      }
+
+      /* -------------------------
+        PENDING APPROVAL COUNT
+        ------------------------- */
+
+      var pendingCount =
+        document.getElementById("countPending");
+
+      if (pendingCount) {
+        pendingCount.textContent =
+          data.pending_users ?? 0;
+      }
+
+    } catch (error) {
+
+      console.error(
+        "Failed to load Admin Dashboard stats:",
+        error
+      );
+
+      /*
+        Keep the dashboard usable if
+        the API is temporarily unavailable.
+      */
+
+      var errorTargets = [
+        "adminTotalTrainees",
+        "adminTotalTrainers",
+        "adminActiveCourses",
+        "adminAssessmentsCompleted",
+        "adminAverageScore",
+        "adminCertificatesIssued"
+      ];
+
+      errorTargets.forEach(function (id) {
+        var element = document.getElementById(id);
+
+        if (element) {
+          element.textContent = "—";
+        }
+      });
+
+      var pendingCount =
+        document.getElementById("countPending");
+
+      if (pendingCount) {
+        pendingCount.textContent = "—";
+      }
+    }
+  }
+
   /* ---------------- Global Event Listeners ---------------- */
   function initEventListeners() {
+
     // Mobile hamburger menu toggle
     var menuBtn = document.getElementById("menuBtn");
     if (menuBtn) {
@@ -1050,11 +1394,21 @@
     // User Management Tabs
     var tabBtns = document.querySelectorAll(".tab-btn[data-tab]");
     tabBtns.forEach(function (btn) {
-      btn.addEventListener("click", function () {
-        tabBtns.forEach(function (b) { b.classList.remove("active"); });
+      btn.addEventListener("click", async function () {
+        tabBtns.forEach(function (b) {
+          b.classList.remove("active");
+        });
+
         btn.classList.add("active");
-        state.activeUserTab = btn.getAttribute("data-tab");
-        renderUsersTable();
+
+        state.activeUserTab =
+          btn.getAttribute("data-tab");
+
+        if (state.activeUserTab === "pending") {
+          await loadPendingAdminUsers();
+        } else {
+          await loadAdminUsers();
+        }
       });
     });
 
@@ -1129,7 +1483,7 @@
     }
 
     // Table Action Delegations
-    document.addEventListener("click", function (e) {
+    document.addEventListener("click", async function (e) {
       var btn = e.target.closest("[data-action]");
       if (!btn) return;
       var action = btn.getAttribute("data-action");
@@ -1137,13 +1491,8 @@
 
       // User Actions
       if (action === "approve-user") {
-        var userToApprove = state.users.find(function (u) { return u.id === id; });
-        if (userToApprove) {
-          userToApprove.status = "Active";
-          save(KEYS.users, state.users);
-          renderUsersTable();
-          showToast("User approved successfully.");
-        }
+        await approveAdminUser(id, btn);
+            
       } else if (action === "reject-user") {
         var userToReject = state.users.find(function (u) { return u.id === id; });
         if (userToReject) {
@@ -1224,6 +1573,7 @@
         renderAnnouncements();
         showToast("Announcement deleted.");
       }
+    
     });
 
     // Create Announcement Modal Trigger
@@ -1291,6 +1641,8 @@
     renderParticipationChart();
     renderProfileForm();
     initEventListeners();
+    loadAdminDashboardStats();
+    loadAdminUsers();
   }
 
   // Run on DOM ready

@@ -10,10 +10,22 @@
  * + Skill Gap Analysis & Recommendations
  */
 
+// Display logged-in user's name
+document.addEventListener("DOMContentLoaded", () => {
+    const userName = localStorage.getItem("userName");
+    const welcomeUserName = document.getElementById("welcomeUserName");
+
+    if (welcomeUserName && userName) {
+        welcomeUserName.textContent = userName;
+    }
+});
+
+
 /* --------------------------------------------------------------------------
    1. Structured Trainee Prototype Data
    (Easily replaceable with Supabase / REST API endpoints later)
    -------------------------------------------------------------------------- */
+   
 const TRAINEE_DATA = {
   profile: {
     name: "Muneeb Ahmad",
@@ -190,44 +202,7 @@ const TRAINEE_DATA = {
     questions: 20,
     timeLimit: 20,
     previousScore: "74% (Attempt 1 - Aug 2026)",
-    sampleQuestions: [
-      {
-        id: 1,
-        question: "Which heuristic search algorithm is guaranteed to find an optimal path on a weighted graph if the heuristic h(n) is admissible?",
-        options: [
-          "Greedy Best-First Search",
-          "A* (A-Star) Search",
-          "Depth-First Search (DFS)",
-          "Uniform Cost Search without heuristic"
-        ],
-        correctIndex: 1,
-        explanation: "A* search is optimal and complete when using an admissible (optimistic) heuristic function."
-      },
-      {
-        id: 2,
-        question: "What is the primary objective of normalizing a relational database schema to Third Normal Form (3NF)?",
-        options: [
-          "To eliminate transitive functional dependencies on the primary key",
-          "To denormalize all tables into a single wide flat table",
-          "To prevent creation of secondary B-Tree indexes",
-          "To enforce non-atomic multi-valued composite attributes"
-        ],
-        correctIndex: 0,
-        explanation: "3NF requires a table to be in 2NF and ensures that no non-prime attribute is transitively dependent on the primary key."
-      },
-      {
-        id: 3,
-        question: "In Supervised Machine Learning, what does a ROC-AUC score of 0.92 indicate about a binary classification model?",
-        options: [
-          "The model exhibits severe overfitting and cannot generalize",
-          "The model has strong discrimination capability between positive and negative classes",
-          "The model's classification error rate is 92%",
-          "The model took 92 gradient descent epochs to converge"
-        ],
-        correctIndex: 1,
-        explanation: "An Area Under the ROC Curve (AUC) of 0.92 indicates excellent classification separation power."
-      }
-    ]
+    sampleQuestions: []
   },
   certificates: [
     {
@@ -274,6 +249,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initTiltCardsDashboard();
   initFeedbackForm();
   loadCoursesAndEnrollments();
+  loadAssessmentCardFromAPI(3);
 });
 
 /* --------------------------------------------------------------------------
@@ -888,295 +864,285 @@ let currentMcqStep = 0;
 let userMcqAnswers = {};
 let assessmentTimerInterval = null;
 let assessmentEndTime = null;
+let apiAssessment = null;
+let apiAssessmentQuestions = [];
+let assessmentSubmitting = false;
 
 
 /* ------------------------------------------------------------
-   AI / ML QUESTION BANK
+   LOAD UPCOMING ASSESSMENT CARD FROM BACKEND
    ------------------------------------------------------------ */
 
-TRAINEE_DATA.upcomingAssessment.sampleQuestions = [
+async function loadAssessmentCardFromAPI(assessmentId = 3) {
+  const titleElement = document.getElementById("upcomingAssessmentTitle");
+  const subjectElement = document.getElementById("upcomingAssessmentSubject");
+  const questionCountElement = document.getElementById(
+    "upcomingAssessmentQuestionCount"
+  );
 
-    {
-        id: 1,
-        question: "What is Artificial Intelligence (AI)?",
-        options: [
-            "A system used only for storing data",
-            "The ability of machines to perform tasks that normally require human intelligence",
-            "A programming language",
-            "A type of computer hardware"
-        ],
-        correctIndex: 1,
-        explanation: "AI refers to systems capable of performing tasks such as learning, reasoning, perception, and decision-making."
-    },
+  try {
+    // ==============================
+    // 1. LOAD ASSESSMENT
+    // ==============================
+    const assessmentResponse = await fetch(
+      `${API_BASE_URL}/assessments/${assessmentId}`
+    );
 
-    {
-        id: 2,
-        question: "Which type of machine learning uses labeled training data?",
-        options: [
-            "Supervised Learning",
-            "Unsupervised Learning",
-            "Reinforcement Learning",
-            "Random Learning"
-        ],
-        correctIndex: 0,
-        explanation: "Supervised learning trains a model using input data together with known target labels."
-    },
-
-    {
-        id: 3,
-        question: "Which of the following is an example of unsupervised learning?",
-        options: [
-            "Predicting house prices",
-            "Classifying emails as spam or not spam",
-            "Grouping customers based on purchasing behavior",
-            "Predicting whether a patient has a disease"
-        ],
-        correctIndex: 2,
-        explanation: "Customer grouping or clustering can be performed without predefined labels."
-    },
-
-    {
-        id: 4,
-        question: "What is the main idea behind Reinforcement Learning?",
-        options: [
-            "Learning from labeled datasets",
-            "Learning through rewards and penalties",
-            "Learning only from images",
-            "Memorizing the training dataset"
-        ],
-        correctIndex: 1,
-        explanation: "An agent learns by interacting with an environment and receiving rewards or penalties."
-    },
-
-    {
-        id: 5,
-        question: "In machine learning, what is a feature?",
-        options: [
-            "The final prediction made by the model",
-            "An input variable used by the model",
-            "The model's accuracy",
-            "The training algorithm"
-        ],
-        correctIndex: 1,
-        explanation: "Features are input variables used by a machine-learning model to make predictions."
-    },
-
-    {
-        id: 6,
-        question: "What is the purpose of a training dataset?",
-        options: [
-            "To permanently store the model",
-            "To train the model to learn patterns",
-            "To display the final results",
-            "To measure internet speed"
-        ],
-        correctIndex: 1,
-        explanation: "Training data is used by the model to learn relationships and patterns."
-    },
-
-    {
-        id: 7,
-        question: "What does overfitting mean in machine learning?",
-        options: [
-            "The model performs poorly on both training and test data",
-            "The model is too simple to learn patterns",
-            "The model learns the training data too closely and performs poorly on unseen data",
-            "The model has no parameters"
-        ],
-        correctIndex: 2,
-        explanation: "An overfitted model memorizes training patterns, including noise, and fails to generalize well."
-    },
-
-    {
-        id: 8,
-        question: "What is underfitting?",
-        options: [
-            "The model is too simple to capture important patterns in the data",
-            "The model memorizes all training examples",
-            "The model has extremely high accuracy",
-            "The model has too many layers"
-        ],
-        correctIndex: 0,
-        explanation: "Underfitting occurs when a model is not complex enough to capture the underlying patterns."
-    },
-
-    {
-        id: 9,
-        question: "Why is a dataset commonly divided into training and testing sets?",
-        options: [
-            "To increase the file size",
-            "To evaluate how well the model generalizes to unseen data",
-            "To remove all features",
-            "To make the computer faster"
-        ],
-        correctIndex: 1,
-        explanation: "The test set provides an independent evaluation of the model on previously unseen examples."
-    },
-
-    {
-        id: 10,
-        question: "What does classification mean in machine learning?",
-        options: [
-            "Predicting a continuous numerical value",
-            "Assigning data to predefined categories",
-            "Removing duplicate rows",
-            "Compressing a dataset"
-        ],
-        correctIndex: 1,
-        explanation: "Classification predicts discrete categories such as spam/not spam or disease/no disease."
-    },
-
-    {
-        id: 11,
-        question: "Which task is an example of regression?",
-        options: [
-            "Predicting tomorrow's temperature",
-            "Classifying an email as spam",
-            "Recognizing whether an image contains a cat",
-            "Grouping customers into clusters"
-        ],
-        correctIndex: 0,
-        explanation: "Regression predicts continuous numerical values."
-    },
-
-    {
-        id: 12,
-        question: "What is the primary purpose of a loss function?",
-        options: [
-            "To measure how far a model's predictions are from the desired outputs",
-            "To increase the dataset size",
-            "To create database tables",
-            "To visualize images"
-        ],
-        correctIndex: 0,
-        explanation: "A loss function quantifies prediction error and helps guide model optimization."
-    },
-
-    {
-        id: 13,
-        question: "What is gradient descent mainly used for?",
-        options: [
-            "Sorting datasets alphabetically",
-            "Optimizing model parameters by reducing the loss",
-            "Creating HTML pages",
-            "Encrypting passwords"
-        ],
-        correctIndex: 1,
-        explanation: "Gradient descent iteratively adjusts model parameters in a direction that reduces the loss."
-    },
-
-    {
-        id: 14,
-        question: "What does the learning rate control in gradient descent?",
-        options: [
-            "The number of features",
-            "The size of each parameter update",
-            "The number of classes",
-            "The size of the dataset"
-        ],
-        correctIndex: 1,
-        explanation: "The learning rate determines how large each optimization step is."
-    },
-
-    {
-        id: 15,
-        question: "What is a neural network inspired by?",
-        options: [
-            "Database tables",
-            "The structure and functioning of biological neural systems",
-            "Computer keyboards",
-            "File systems"
-        ],
-        correctIndex: 1,
-        explanation: "Artificial neural networks are loosely inspired by biological neurons and their connections."
-    },
-
-    {
-        id: 16,
-        question: "Which activation function is commonly used in hidden layers of modern neural networks?",
-        options: [
-            "ReLU",
-            "SQL",
-            "HTML",
-            "CSV"
-        ],
-        correctIndex: 0,
-        explanation: "ReLU (Rectified Linear Unit) is widely used because it is simple and helps neural networks learn nonlinear relationships."
-    },
-
-    {
-        id: 17,
-        question: "What is a Convolutional Neural Network (CNN) particularly useful for?",
-        options: [
-            "Image and visual data processing",
-            "Writing database queries",
-            "Managing operating-system files",
-            "Sending emails"
-        ],
-        correctIndex: 0,
-        explanation: "CNNs are especially effective at extracting spatial patterns from images and other grid-like data."
-    },
-
-    {
-        id: 18,
-        question: "What is Natural Language Processing (NLP)?",
-        options: [
-            "Processing and understanding human language using computers",
-            "Processing only numerical datasets",
-            "Managing computer networks",
-            "Designing computer hardware"
-        ],
-        correctIndex: 0,
-        explanation: "NLP focuses on enabling computers to process, understand, and generate human language."
-    },
-
-    {
-        id: 19,
-        question: "What is precision in binary classification?",
-        options: [
-            "The proportion of actual positives that were correctly identified",
-            "The proportion of predicted positives that are actually positive",
-            "The total number of training samples",
-            "The percentage of missing values"
-        ],
-        correctIndex: 1,
-        explanation: "Precision = True Positives / (True Positives + False Positives)."
-    },
-
-    {
-        id: 20,
-        question: "Which technique can help reduce overfitting in a neural network?",
-        options: [
-            "Dropout",
-            "Increasing training errors intentionally",
-            "Removing all training data",
-            "Using only one sample"
-        ],
-        correctIndex: 0,
-        explanation: "Dropout randomly disables some neurons during training, which can help the network generalize better."
+    if (!assessmentResponse.ok) {
+      throw new Error(
+        `Assessment API failed: ${assessmentResponse.status}`
+      );
     }
 
-];
+    const assessmentData = await assessmentResponse.json();
+
+    const assessment = Array.isArray(assessmentData)
+      ? assessmentData[0]
+      : assessmentData;
+
+    if (!assessment) {
+      throw new Error("Assessment 3 was not found.");
+    }
+
+    console.log("Assessment loaded:", assessment);
+
+    // Show assessment title immediately
+    if (titleElement) {
+      titleElement.textContent =
+        assessment.title || "Assessment";
+    }
+
+
+    // ==============================
+    // 2. LOAD SKILLS
+    // ==============================
+    try {
+      const skillsResponse = await fetch(
+        `${API_BASE_URL}/skills`
+      );
+
+      if (!skillsResponse.ok) {
+        throw new Error(
+          `Skills API failed: ${skillsResponse.status}`
+        );
+      }
+
+      const skills = await skillsResponse.json();
+
+      console.log("Skills loaded:", skills);
+
+      const skill = skills.find(
+        s => Number(s.id) === Number(assessment.skill_id)
+      );
+
+      if (subjectElement) {
+        subjectElement.textContent =
+          skill?.name || "Subject unavailable";
+      }
+
+    } catch (skillError) {
+      console.error("Could not load skill:", skillError);
+
+      if (subjectElement) {
+        subjectElement.textContent = "Subject unavailable";
+      }
+    }
+
+
+    // ==============================
+    // 3. LOAD QUESTIONS
+    // ==============================
+    try {
+      const questionsResponse = await fetch(
+        `${API_BASE_URL}/questions`
+      );
+
+      if (!questionsResponse.ok) {
+        throw new Error(
+          `Questions API failed: ${questionsResponse.status}`
+        );
+      }
+
+      const allQuestions = await questionsResponse.json();
+
+      console.log("All questions loaded:", allQuestions);
+
+      const assessmentQuestions = allQuestions.filter(
+        q => Number(q.assessment_id) === Number(assessmentId)
+      );
+
+      console.log(
+        `Assessment ${assessmentId} questions:`,
+        assessmentQuestions
+      );
+
+      if (questionCountElement) {
+        questionCountElement.textContent =
+          `${assessmentQuestions.length} MCQs`;
+      }
+
+    } catch (questionError) {
+      console.error(
+        "Could not load assessment questions:",
+        questionError
+      );
+
+      if (questionCountElement) {
+        questionCountElement.textContent =
+          "Questions unavailable";
+      }
+    }
+
+  } catch (error) {
+    console.error(
+      "Could not load assessment:",
+      error
+    );
+
+    // IMPORTANT:
+    // Don't overwrite the title with "Unable to load assessment"
+    // unless the actual assessment request failed.
+
+    if (titleElement) {
+      titleElement.textContent =
+        "Assessment unavailable";
+    }
+  }
+}
+
+/* ------------------------------------------------------------
+   LIVE ASSESSMENT QUESTIONS COME FROM THE BACKEND API.
+   Hardcoded question banks (including correctIndex) are not used.
+   ------------------------------------------------------------ */
+
+async function loadAssessmentFromAPI(assessmentId = 3) {
+  const userId = localStorage.getItem("userId");
+
+  if (!userId) {
+    showToast("User session not found. Please log in again.", "error");
+    return false;
+  }
+
+  try {
+    const assessmentResponse = await fetch(
+      `${API_BASE_URL}/assessments/${assessmentId}`
+    );
+
+    if (!assessmentResponse.ok) {
+      throw new Error(
+        `Assessment request failed: ${assessmentResponse.status}`
+      );
+    }
+
+    const assessmentData = await assessmentResponse.json();
+
+    const assessment = Array.isArray(assessmentData)
+      ? assessmentData[0]
+      : assessmentData;
+
+    if (!assessment) {
+      throw new Error("Assessment not found.");
+    }
+
+    const questionsResponse = await fetch(
+      `${API_BASE_URL}/questions`
+    );
+
+    if (!questionsResponse.ok) {
+      throw new Error(
+        `Questions request failed: ${questionsResponse.status}`
+      );
+    }
+
+    const allQuestions = await questionsResponse.json();
+
+    const questions = allQuestions.filter(
+      q => Number(q.assessment_id) === Number(assessmentId)
+    );
+
+    if (questions.length === 0) {
+      throw new Error("No questions found for this assessment.");
+    }
+
+    // IMPORTANT:
+    // Do NOT include correct_option or correctIndex.
+    const frontendQuestions = questions.map(q => ({
+      id: Number(q.id),
+      question: q.question_text,
+      options: [
+        q.option_a,
+        q.option_b,
+        q.option_c,
+        q.option_d
+      ]
+    }));
+
+    apiAssessment = {
+      id: Number(assessment.id),
+      title: assessment.title,
+      description: assessment.description,
+      totalQuestions: Number(
+        assessment.total_questions || questions.length
+      ),
+      deadline: assessment.deadline,
+      skillId: assessment.skill_id,
+
+      // Keep the existing UI's 20-minute timer.
+      timeLimit: 20,
+
+      sampleQuestions: frontendQuestions
+    };
+
+    apiAssessmentQuestions = frontendQuestions;
+
+    // Preserve existing dashboard structure.
+    TRAINEE_DATA.upcomingAssessment = {
+      ...TRAINEE_DATA.upcomingAssessment,
+      ...apiAssessment,
+      questions: frontendQuestions.length,
+      sampleQuestions: frontendQuestions
+    };
+
+    return true;
+
+  } catch (error) {
+    console.error("Assessment API load failed:", error);
+
+    showToast(
+      error.message || "Unable to load assessment.",
+      "error"
+    );
+
+    return false;
+  }
+}
 
 
 /* ------------------------------------------------------------
    START ASSESSMENT
    ------------------------------------------------------------ */
 
-function handleStartAssessment() {
+async function handleStartAssessment() {
 
-    const assess = TRAINEE_DATA.upcomingAssessment;
+  const loaded = await loadAssessmentFromAPI(3);
 
-    currentMcqStep = 0;
-    userMcqAnswers = {};
+  if (!loaded) {
+    return;
+  }
 
-    clearAssessmentTimer();
+  const assess = TRAINEE_DATA.upcomingAssessment;
 
-    assessmentEndTime =
-        Date.now() + (assess.timeLimit * 60 * 1000);
+  currentMcqStep = 0;
+  userMcqAnswers = {};
+  assessmentSubmitting = false;
 
-    renderMcqQuestionModal(assess);
-    startAssessmentTimer();
+  clearAssessmentTimer();
+
+  assessmentEndTime =
+    Date.now() + (assess.timeLimit * 60 * 1000);
+
+  renderMcqQuestionModal(assess);
+  startAssessmentTimer();
 }
 
 
@@ -1641,427 +1607,324 @@ function prevMcqQuestion() {
    SUBMIT ASSESSMENT
    ------------------------------------------------------------ */
 
-function submitMcqAssessment(isAutoSubmit = false) {
+async function submitMcqAssessment(isAutoSubmit = false) {
 
-    const assess =
-        TRAINEE_DATA.upcomingAssessment;
+  const assess = TRAINEE_DATA.upcomingAssessment;
+  const questions = assess.sampleQuestions;
 
-    const questions =
-        assess.sampleQuestions;
+  if (assessmentSubmitting) {
+    return;
+  }
 
+  if (!isAutoSubmit) {
 
-    /* --------------------------------------------
-       Check unanswered questions
-       -------------------------------------------- */
+    const unansweredIndex = questions.findIndex(
+      q => userMcqAnswers[q.id] === undefined
+    );
 
-    if (!isAutoSubmit) {
+    if (unansweredIndex !== -1) {
 
-        const unansweredIndex =
-            questions.findIndex(
-                q => userMcqAnswers[q.id] === undefined
-            );
+      currentMcqStep = unansweredIndex;
+      renderMcqQuestionModal(assess);
 
+      showToast(
+        "Please answer all questions before submitting.",
+        "info"
+      );
 
-        if (unansweredIndex !== -1) {
+      return;
+    }
+  }
 
-            currentMcqStep = unansweredIndex;
+  const userId = localStorage.getItem("userId");
 
-            renderMcqQuestionModal(assess);
+  if (!userId) {
+    showToast(
+      "User session not found. Please log in again.",
+      "error"
+    );
+    return;
+  }
 
-            showToast(
-                "Please answer all questions before submitting.",
-                "info"
-            );
+  clearAssessmentTimer();
 
-            return;
-        }
+  assessmentSubmitting = true;
+
+  try {
+
+    const optionLetters = ["A", "B", "C", "D"];
+
+    const answers = questions.map(q => ({
+      question_id: Number(q.id),
+      selected_option: optionLetters[userMcqAnswers[q.id]]
+    }));
+
+    const response = await fetch(
+      `${API_BASE_URL}/assessments/${assess.id}/submit`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          user_id: userId,
+          answers: answers
+        })
+      }
+    );
+
+    const data = await response.json().catch(() => null);
+
+    if (!response.ok) {
+
+      const message =
+        data?.detail ||
+        data?.message ||
+        `Assessment submission failed (${response.status})`;
+
+      throw new Error(message);
     }
 
-
-    clearAssessmentTimer();
-
-
-    /* --------------------------------------------
-       Calculate score
-       -------------------------------------------- */
-
-    let correctCount = 0;
-
-
-    questions.forEach(q => {
-
-        if (
-            userMcqAnswers[q.id] === q.correctIndex
-        ) {
-
-            correctCount++;
-        }
-
-    });
-
-
-    const totalQuestions =
-        questions.length;
-
-    const percent =
-        Math.round(
-            (correctCount / totalQuestions) * 100
-        );
-
-
-    /* --------------------------------------------
-       Update AI / ML competency
-       -------------------------------------------- */
-
-    const aimlSkill =
-        TRAINEE_DATA.skills.find(
-            skill => skill.id === "aiml"
-        );
-
-
-    const previousScore =
-        aimlSkill ? aimlSkill.score : 0;
-
-
-    if (aimlSkill) {
-
-        aimlSkill.score = percent;
-
-
-        if (percent >= 80) {
-
-            aimlSkill.status = "Strong";
-
-        } else if (percent >= 60) {
-
-            aimlSkill.status = "Developing";
-
-        } else {
-
-            aimlSkill.status = "Needs Improvement";
-        }
-    }
-
-
-    /* --------------------------------------------
-       Update AI / ML skill gap
-       -------------------------------------------- */
-
-    const aimlGap =
-        TRAINEE_DATA.skillGaps.find(
-            gap => gap.id === "gap-aiml"
-        );
-
-
-    let currentGap = 0;
-
-    let gapStatus = "";
-
-    let gapLevelClass = "";
-
-    let recommendedAction = "";
-
-
-    if (aimlGap) {
-
-        const target = aimlGap.target || 80;
-
-        currentGap =
-            Math.max(target - percent, 0);
-
-
-        if (percent >= target) {
-
-            gapStatus = "Target Achieved";
-
-            gapLevelClass = "success";
-
-            recommendedAction =
-                "Maintain your AI/ML competency through advanced practice and projects.";
-
-        } else if (currentGap >= 40) {
-
-            gapStatus = "Major Skill Gap";
-
-            gapLevelClass = "danger";
-
-            recommendedAction =
-                "Focus on foundational AI/ML concepts and complete the recommended learning path.";
-
-        } else if (currentGap >= 20) {
-
-            gapStatus = "Needs Improvement";
-
-            gapLevelClass = "warning";
-
-            recommendedAction =
-                "Continue AI/ML learning and complete additional practice assessments.";
-
-        } else {
-
-            gapStatus = "On Track";
-
-            gapLevelClass = "success";
-
-            recommendedAction =
-                "Complete the remaining AI/ML learning activities to reach the target competency.";
-        }
-
-
-        aimlGap.current = percent;
-
-        aimlGap.gap = currentGap;
-
-        aimlGap.status = gapStatus;
-
-        aimlGap.levelClass = gapLevelClass;
-
-        aimlGap.recommendedAction =
-            recommendedAction;
-    }
-
-
-    /* --------------------------------------------
-       Push the updated scores into the DOM right away
-       -------------------------------------------- */
-
-    renderSkillsAndGaps();
-
-
-    /* --------------------------------------------
-       Result Modal
-       -------------------------------------------- */
-
-    let resultMessage = "";
-
-
-    if (percent >= 80) {
-
-        resultMessage =
-            "Excellent performance! You have reached the target AI/ML competency level.";
-
-    } else if (percent >= 60) {
-
-        resultMessage =
-            "Good progress. Continue learning to close the remaining AI/ML skill gap.";
-
-    } else {
-
-        resultMessage =
-            "This assessment identified areas where additional AI/ML learning is recommended.";
-    }
-
-
-    const content = `
+    console.log(
+      "Assessment submitted successfully:",
+      data
+    );
+
+    window.lastAssessmentResult = data;
+
+    showAssessmentResultsFromAPI(
+      data,
+      isAutoSubmit
+    );
+
+  } catch (error) {
+
+    console.error(
+      "Assessment submission failed:",
+      error
+    );
+
+    showToast(
+      error.message ||
+      "Unable to submit assessment.",
+      "error"
+    );
+
+  } finally {
+
+    assessmentSubmitting = false;
+
+  }
+}
+
+
+function showAssessmentResultsFromAPI(
+  data,
+  isAutoSubmit = false
+) {
+
+  const result = data.result || {};
+  const skillGap = data.skill_gap || {};
+
+  const score = Number(result.score || 0);
+  const totalMarks = Number(result.total_marks || 0);
+  const percentage = Number(result.percentage || 0);
+
+  const correctAnswers =
+    Number(data.correct_answers || 0);
+
+  const totalQuestions =
+    Number(
+      data.total_questions ||
+      TRAINEE_DATA.upcomingAssessment.sampleQuestions.length
+    );
+
+  const attemptNumber =
+    Number(result.attempt_number || 1);
+
+  const currentGap =
+    Number(skillGap.gap_score || 0);
+
+  const target =
+    Number(skillGap.target_score || 80);
+
+  const status =
+    skillGap.status || "Not Available";
+
+  let gapLevelClass = "danger";
+
+  if (status === "Target Achieved") {
+    gapLevelClass = "success";
+  } else if (status === "Needs Improvement") {
+    gapLevelClass = "warning";
+  }
+
+  const content = `
+    <div style="
+      text-align:center;
+      margin-bottom:22px;
+    ">
+
+      <div style="
+        font-size:3rem;
+        font-weight:900;
+        color:var(--accent-emerald);
+        margin-bottom:5px;
+      ">
+        ${percentage}%
+      </div>
+
+      <div style="
+        color:var(--text-secondary);
+        font-size:0.9rem;
+      ">
+        ${score} / ${totalMarks} Marks
+      </div>
+
+    </div>
+
+    <div style="
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+      margin-bottom:20px;
+    ">
+
+      <div style="
+        background:rgba(255,255,255,0.03);
+        border:1px solid var(--border-subtle);
+        border-radius:12px;
+        padding:14px;
+      ">
 
         <div style="
-            text-align:center;
-            padding:10px 0;
+          color:var(--text-muted);
+          font-size:0.72rem;
+          text-transform:uppercase;
         ">
-
-
-            <div style="
-                width:74px;
-                height:74px;
-                border-radius:50%;
-                background:rgba(16,185,129,0.15);
-                border:2px solid var(--accent-emerald);
-                display:flex;
-                align-items:center;
-                justify-content:center;
-                font-size:2rem;
-                margin:0 auto 16px;
-            ">
-                ${
-                    percent >= 80
-                        ? "🏆"
-                        : percent >= 60
-                            ? "🎯"
-                            : "📚"
-                }
-            </div>
-
-
-            <h3 style="
-                font-size:1.4rem;
-                color:#fff;
-                margin-bottom:6px;
-            ">
-                Assessment Completed!
-            </h3>
-
-
-            <p style="
-                color:var(--text-secondary);
-                font-size:0.9rem;
-                line-height:1.5;
-                margin-bottom:20px;
-            ">
-                ${resultMessage}
-            </p>
-
-
-
-            <!-- Score -->
-
-            <div style="
-                background:rgba(255,255,255,0.03);
-                border:1px solid var(--border-subtle);
-                border-radius:16px;
-                padding:20px;
-                margin-bottom:16px;
-            ">
-
-                <div style="
-                    font-size:0.8rem;
-                    text-transform:uppercase;
-                    color:var(--text-muted);
-                    letter-spacing:0.05em;
-                ">
-                    Final Score
-                </div>
-
-
-                <div style="
-                    font-family:var(--font-heading);
-                    font-size:2.5rem;
-                    font-weight:800;
-                    color:var(--accent-emerald);
-                    margin:4px 0;
-                ">
-                    ${percent}%
-                </div>
-
-
-                <span style="
-                    font-size:0.85rem;
-                    color:#ffffff;
-                ">
-                    ${correctCount} of ${totalQuestions} Correct
-                </span>
-
-            </div>
-
-
-
-            <!-- Competency Update -->
-
-            <div style="
-                display:grid;
-                grid-template-columns:1fr 1fr;
-                gap:10px;
-                margin-bottom:20px;
-            ">
-
-
-                <div style="
-                    background:rgba(255,255,255,0.03);
-                    border:1px solid var(--border-subtle);
-                    border-radius:12px;
-                    padding:14px;
-                ">
-
-                    <div style="
-                        color:var(--text-muted);
-                        font-size:0.72rem;
-                        text-transform:uppercase;
-                    ">
-                        AI/ML Competency
-                    </div>
-
-                    <div style="
-                        color:#fff;
-                        font-size:1.2rem;
-                        font-weight:800;
-                        margin-top:4px;
-                    ">
-                        ${percent}%
-                    </div>
-
-                </div>
-
-
-
-                <div style="
-                    background:rgba(255,255,255,0.03);
-                    border:1px solid var(--border-subtle);
-                    border-radius:12px;
-                    padding:14px;
-                ">
-
-                    <div style="
-                        color:var(--text-muted);
-                        font-size:0.72rem;
-                        text-transform:uppercase;
-                    ">
-                        Remaining Gap
-                    </div>
-
-                    <div style="
-                        color:#fff;
-                        font-size:1.2rem;
-                        font-weight:800;
-                        margin-top:4px;
-                    ">
-                        ${currentGap}%
-                    </div>
-
-                </div>
-
-            </div>
-
-
-
-            ${
-                isAutoSubmit
-
-                ?
-
-                `
-                    <div style="
-                        background:rgba(245,158,11,0.08);
-                        border:1px solid rgba(245,158,11,0.25);
-                        border-radius:12px;
-                        padding:10px;
-                        margin-bottom:18px;
-                        color:#fbbf24;
-                        font-size:0.82rem;
-                    ">
-                        ⏱️ The assessment was automatically submitted because the time limit expired.
-                    </div>
-                `
-
-                :
-
-                ""
-            }
-
-
-
-            <button
-                type="button"
-                class="btn btn-primary"
-                style="width:100%;"
-                onclick="
-                    closeModal();
-                    showToast(
-                        'AI/ML competency profile updated locally.',
-                        'success'
-                    );
-                "
-            >
-                Return to Dashboard &check;
-            </button>
-
+          Correct Answers
         </div>
 
-    `;
+        <div style="
+          color:#fff;
+          font-size:1.2rem;
+          font-weight:800;
+          margin-top:4px;
+        ">
+          ${correctAnswers} / ${totalQuestions}
+        </div>
 
+      </div>
 
-    openModal(
-        "Assessment Results",
-        content
-    );
+      <div style="
+        background:rgba(255,255,255,0.03);
+        border:1px solid var(--border-subtle);
+        border-radius:12px;
+        padding:14px;
+      ">
+
+        <div style="
+          color:var(--text-muted);
+          font-size:0.72rem;
+          text-transform:uppercase;
+        ">
+          Attempt
+        </div>
+
+        <div style="
+          color:#fff;
+          font-size:1.2rem;
+          font-weight:800;
+          margin-top:4px;
+        ">
+          ${attemptNumber}
+        </div>
+
+      </div>
+
+    </div>
+
+    <div style="
+      background:rgba(255,255,255,0.03);
+      border:1px solid var(--border-subtle);
+      border-radius:12px;
+      padding:16px;
+      margin-bottom:20px;
+    ">
+
+      <div style="
+        color:var(--text-muted);
+        font-size:0.72rem;
+        text-transform:uppercase;
+        margin-bottom:4px;
+      ">
+        Skill Gap
+      </div>
+
+      <div style="
+        color:#fff;
+        font-size:1.15rem;
+        font-weight:800;
+      ">
+        ${currentGap}% Gap
+      </div>
+
+      <div style="
+        margin-top:5px;
+        color:var(--text-secondary);
+        font-size:0.82rem;
+      ">
+        Current: ${percentage}% &nbsp; | &nbsp; Target: ${target}%
+      </div>
+
+      <div style="
+        margin-top:10px;
+        font-weight:800;
+      ">
+        ${status}
+      </div>
+
+    </div>
+
+    ${
+      isAutoSubmit
+        ? `
+          <div style="
+            background:rgba(245,158,11,0.08);
+            border:1px solid rgba(245,158,11,0.25);
+            border-radius:12px;
+            padding:10px;
+            margin-bottom:18px;
+            color:#fbbf24;
+            font-size:0.82rem;
+          ">
+            ⏱️ The assessment was automatically submitted because the time limit expired.
+          </div>
+        `
+        : ""
+    }
+
+    <button
+      type="button"
+      class="btn btn-primary"
+      style="width:100%;"
+      onclick="
+        closeModal();
+        renderSkillsAndGaps();
+        showToast(
+          'Assessment result saved successfully.',
+          'success'
+        );
+      "
+    >
+      Return to Dashboard ✓
+    </button>
+  `;
+
+  openModal(
+    "Assessment Results",
+    content
+  );
 }
 
 /* --------------------------------------------------------------------------
@@ -2176,6 +2039,17 @@ async function loadCoursesAndEnrollments() {
     const resCourses = await fetch(`${API_BASE_URL}/courses`);
     if (resCourses.ok) {
       apiCourses = await resCourses.json();
+
+      const enrolledCoursesElement = document.getElementById("enrolledCoursesCount");
+
+      if (enrolledCoursesElement) {
+        enrolledCoursesElement.textContent = apiEnrollments.length;
+      }
+      const totalCoursesElement = document.getElementById("totalCoursesCount");
+
+      if (totalCoursesElement) {
+        totalCoursesElement.textContent = apiCourses.length;
+      }
     }
   } catch (err) {
     console.error("Failed to load courses from API:", err);
@@ -2217,7 +2091,15 @@ async function loadCoursesAndEnrollments() {
       const resEnroll = await fetch(`${API_BASE_URL}/enrollments/${userId}`);
       if (resEnroll.ok) {
         apiEnrollments = await resEnroll.json();
-      }
+
+        // Update Enrolled Courses metric
+        const enrolledCoursesElement =
+        document.getElementById("enrolledCoursesCount");
+
+        if (enrolledCoursesElement) {
+          enrolledCoursesElement.textContent = apiEnrollments.length;
+        }
+  }
     } catch (err) {
       console.error("Failed to load user enrollments:", err);
     }
