@@ -145,13 +145,18 @@
   /* ---------------- State ---------------- */
   var state = {
     users: [],
-    courses: load(KEYS.courses, SEED_COURSES),
+    courses: [],
     assessments: load(KEYS.assessments, SEED_ASSESSMENTS),
     certificates: load(KEYS.certificates, SEED_CERTIFICATES),
     announcements: load(KEYS.announcements, SEED_ANNOUNCEMENTS),
-    trainers: load(KEYS.trainers, SEED_TRAINERS),
+    trainers: [],
     notifications: load(KEYS.notifications, SEED_NOTIFICATIONS),
     profile: load(KEYS.profile, SEED_PROFILE),
+
+    // API lookup maps
+    trainerMap: new Map(),
+    skillMap: new Map(),
+
     activeUserTab: "all",
     userSearch: "",
     userRoleFilter: "",
@@ -250,6 +255,203 @@
     if (sidebar) sidebar.classList.remove("open");
     if (overlay) overlay.classList.remove("show");
   }
+
+  /* =========================================================
+     COURSE / TRAINER / SKILL API MAPPING
+     ========================================================= */
+
+  var ADMIN_API_BASE_URL =
+    "https://capacity-connect-backend-ejbl.onrender.com";
+
+
+  /* ---------------- Load Trainers ---------------- */
+
+  async function loadAdminTrainersForCourseMapping() {
+    try {
+      var response = await fetch(
+        ADMIN_API_BASE_URL + "/admin/users"
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          "Admin users API returned " + response.status
+        );
+      }
+
+      var users = await response.json();
+
+      // Keep only actual trainers
+      var trainers = users.filter(function (user) {
+        return String(user.role || "").toLowerCase() === "trainer";
+      });
+
+      state.trainers = trainers.map(function (trainer) {
+        return {
+          id: trainer.id,
+          name: trainer.Name || trainer.name || "Unknown Trainer",
+          email: trainer.Email || trainer.email || "",
+          role: trainer.role,
+          status: trainer.is_approved ? "Active" : "Pending Approval"
+        };
+      });
+
+      // Build trainer_id -> trainer name lookup
+      state.trainerMap.clear();
+
+      state.trainers.forEach(function (trainer) {
+        state.trainerMap.set(
+          String(trainer.id),
+          trainer.name
+        );
+      });
+
+      console.log(
+        "Trainer mapping loaded:",
+        state.trainerMap
+      );
+
+    } catch (error) {
+      console.error(
+        "Failed to load trainers:",
+        error
+      );
+
+      state.trainers = [];
+      state.trainerMap.clear();
+    }
+  }
+
+
+  /* ---------------- Load Skills ---------------- */
+
+  async function loadAdminSkillsForCourseMapping() {
+    try {
+      var response = await fetch(
+        ADMIN_API_BASE_URL + "/skills"
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          "Skills API returned " + response.status
+        );
+      }
+
+      var skills = await response.json();
+
+      // Build skill_id -> skill name lookup
+      state.skillMap.clear();
+
+      skills.forEach(function (skill) {
+        state.skillMap.set(
+          String(skill.id),
+          skill.name
+        );
+      });
+
+      console.log(
+        "Skill mapping loaded:",
+        state.skillMap
+      );
+
+    } catch (error) {
+      console.error(
+        "Failed to load skills:",
+        error
+      );
+
+      state.skillMap.clear();
+    }
+  }
+
+
+  /* ---------------- Load Courses ---------------- */
+
+  async function loadAdminCourses() {
+    try {
+      console.log("COURSE API DATA:", courses);
+      console.log("TRAINER MAP:", state.trainerMap);
+      console.log("SKILL MAP:", state.skillMap);
+      const response = await fetch(
+        ADMIN_API_BASE_URL + "/courses"
+      );
+
+      if (!response.ok) {
+        throw new Error("Courses API returned " + response.status);
+      }
+
+      const courses = await response.json();
+
+      if (!Array.isArray(courses)) {
+        throw new Error("Invalid courses response");
+      }
+
+      state.courses = courses.map(function (course) {
+        return {
+          id: course.id,
+
+          title: course.title || "Untitled Course",
+
+          description: course.description || "",
+
+          trainer:
+            state.trainerMap &&
+            state.trainerMap.get(String(course.trainer_id))
+              ? state.trainerMap.get(String(course.trainer_id))
+              : "—",
+
+          skill:
+            state.skillMap &&
+            state.skillMap.get(String(course.skill_id))
+              ? state.skillMap.get(String(course.skill_id))
+              : "—",
+
+          trainer_id: course.trainer_id,
+
+          skill_id: course.skill_id,
+
+          // REAL backend enrollment count
+          enrollments: Number(course.enrollment_count ?? 0),
+
+          // Not available from backend yet
+          completion: 0,
+
+          status: course.status || "Published",
+
+          duration: course.duration || "—",
+
+          level: course.difficulty || "—",
+
+          resource_ur1: course.resource_ur1 || "",
+
+          created_at: course.created_at || ""
+        };
+      });
+
+      console.log("Admin courses loaded:", state.courses);
+
+      renderCoursesTable();
+
+    } catch (error) {
+      console.error("Admin courses API error:", error);
+
+      state.courses = [];
+
+      renderCoursesTable();
+    }
+  }
+
+
+  /* ---------------- Load Course Management Data ---------------- */
+
+  async function loadCourseManagementData() {
+    await Promise.all([
+      loadAdminTrainersForCourseMapping(),
+      loadAdminSkillsForCourseMapping()
+    ]);
+
+    await loadAdminCourses();
+  }
+
 
   /* ---------------- Render Functions ---------------- */
 
@@ -354,6 +556,7 @@
       state.users = data.map(normalizeAdminUser);
 
       renderUsersTable();
+      renderTrainersTable();
 
       console.log(
         "Admin users loaded from backend:",
@@ -626,69 +829,324 @@
     tbody.innerHTML = html;
   }
 
+  async function loadAdminCourses() {
+    try {
+      var response = await fetch(
+        ADMIN_API_BASE_URL + "/courses"
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          "Course API returned " + response.status
+        );
+      }
+
+      var data = await response.json();
+
+      if (!Array.isArray(data)) {
+        throw new Error(
+          "Invalid courses response from backend."
+        );
+      }
+
+      state.courses = data.map(function (course) {
+
+        var trainerName =
+          state.trainerMap.get(
+            String(course.trainer_id)
+          ) || "—";
+
+        var skillName =
+          state.skillMap.get(
+            String(course.skill_id)
+          ) || "—";
+
+        return {
+          id: course.id,
+
+          title:
+            course.title || "Untitled Course",
+
+          description:
+            course.description || "",
+
+          duration:
+            course.duration || "—",
+
+          level:
+            course.difficulty || "—",
+
+          skill_id:
+            course.skill_id,
+
+          trainer_id:
+            course.trainer_id,
+
+          // REAL trainer mapping
+          trainer:
+            trainerName,
+
+          // REAL skill mapping
+          skill:
+            skillName,
+
+          // REAL backend enrollment count
+          enrollments:
+            Number(course.enrollment_count ?? 0),
+
+          // Completion tracking is not implemented yet
+          completion: 0,
+
+          status:
+            course.status || "Published",
+
+          resource_ur1:
+            course.resource_ur1 || "",
+
+          created_at:
+            course.created_at || ""
+        };
+      });
+
+      console.log(
+        "Admin courses loaded from backend:",
+        state.courses
+      );
+
+      renderCoursesTable();
+
+    } catch (error) {
+
+      console.error(
+        "Failed to load admin courses:",
+        error
+      );
+
+      state.courses = [];
+
+      renderCoursesTable();
+    }
+  }
+
+
   // 4. Course Management Table (Section 6)
+    // 4. Course Management Table (Section 6)
   function renderCoursesTable() {
     var tbody = document.getElementById("coursesTableBody");
     if (!tbody) return;
 
     var filtered = state.courses.filter(function (c) {
-      if (state.courseFilterStatus && c.status !== state.courseFilterStatus) return false;
-      if (state.courseFilterSkill && c.skill !== state.courseFilterSkill) return false;
+      if (
+        state.courseFilterStatus &&
+        c.status !== state.courseFilterStatus
+      ) {
+        return false;
+      }
+
+      if (
+        state.courseFilterSkill &&
+        c.skill !== state.courseFilterSkill
+      ) {
+        return false;
+      }
+
       return true;
     });
 
-    // Summary counts
-    var actCount = state.courses.filter(function (c) { return c.status === "Published"; }).length;
-    var pndCount = state.courses.filter(function (c) { return c.status === "Pending Approval"; }).length;
-    var drfCount = state.courses.filter(function (c) { return c.status === "Draft"; }).length;
-    var arcCount = state.courses.filter(function (c) { return c.status === "Archived"; }).length;
 
-    var elA = document.getElementById("courseCountActive");
-    if (elA) elA.textContent = actCount;
-    var elP = document.getElementById("courseCountPending");
-    if (elP) elP.textContent = pndCount;
-    var elD = document.getElementById("courseCountDraft");
-    if (elD) elD.textContent = drfCount;
-    var elAr = document.getElementById("courseCountArchived");
-    if (elAr) elAr.textContent = arcCount;
+    /* ---------------- Summary Counts ---------------- */
+
+    var actCount = state.courses.filter(function (c) {
+      return c.status === "Published";
+    }).length;
+
+    var pndCount = state.courses.filter(function (c) {
+      return c.status === "Pending Approval";
+    }).length;
+
+    var drfCount = state.courses.filter(function (c) {
+      return c.status === "Draft";
+    }).length;
+
+    var arcCount = state.courses.filter(function (c) {
+      return c.status === "Archived";
+    }).length;
+
+
+    var elA =
+      document.getElementById("courseCountActive");
+
+    if (elA) {
+      elA.textContent = actCount;
+    }
+
+
+    var elP =
+      document.getElementById("courseCountPending");
+
+    if (elP) {
+      elP.textContent = pndCount;
+    }
+
+
+    var elD =
+      document.getElementById("courseCountDraft");
+
+    if (elD) {
+      elD.textContent = drfCount;
+    }
+
+
+    var elAr =
+      document.getElementById("courseCountArchived");
+
+    if (elAr) {
+      elAr.textContent = arcCount;
+    }
+
+
+    /* ---------------- Empty State ---------------- */
+
+    if (filtered.length === 0) {
+
+      tbody.innerHTML =
+        '<tr>' +
+          '<td colspan="7" style="text-align:center; padding:36px; color:var(--slate-500);">' +
+            '<div style="font-size:14px;">No courses found.</div>' +
+          '</td>' +
+        '</tr>';
+
+      return;
+    }
+
+
+    /* ---------------- Course Rows ---------------- */
 
     var html = "";
-    filtered.forEach(function (c) {
-      var badgeCls = c.status === "Published" ? "badge-published" :
-                     c.status === "Pending Approval" ? "badge-pending" :
-                     c.status === "Draft" ? "badge-draft" : "badge-archived";
 
-      var actionsHtml = '<div class="action-group">';
-      actionsHtml += '<button class="row-btn" data-action="view-course" data-id="' + c.id + '">View</button>';
+    filtered.forEach(function (c) {
+
+      var badgeCls =
+        c.status === "Published"
+          ? "badge-published"
+          : c.status === "Pending Approval"
+            ? "badge-pending"
+            : c.status === "Draft"
+              ? "badge-draft"
+              : "badge-archived";
+
+
+      var actionsHtml =
+        '<div class="action-group">';
+
+      actionsHtml +=
+        '<button class="row-btn" data-action="view-course" data-id="' +
+        c.id +
+        '">View</button>';
+
 
       if (c.status === "Pending Approval") {
-        actionsHtml += '<button class="row-btn row-btn-success" data-action="approve-course" data-id="' + c.id + '">Approve</button>';
-      }
-      if (c.status !== "Archived") {
-        actionsHtml += '<button class="row-btn" data-action="archive-course" data-id="' + c.id + '">Archive</button>';
-      }
-      actionsHtml += '</div>';
 
-      html += '<tr>' +
-        '<td>' +
-          '<div style="font-weight:600; color:#fff;">' + esc(c.title) + '</div>' +
-          '<div style="font-size:10px; color:var(--slate-500);">' + esc(c.duration) + ' &middot; ' + esc(c.level) + '</div>' +
-        '</td>' +
-        '<td>' + esc(c.trainer) + '</td>' +
-        '<td><span class="badge badge-trainee">' + esc(c.skill) + '</span></td>' +
-        '<td><strong style="color:var(--slate-200);">' + c.enrollments + '</strong></td>' +
-        '<td>' +
-          '<div style="display:flex; align-items:center; gap:8px; width:100px;">' +
-            '<div class="competency-track" style="flex:1; height:6px;">' +
-              '<div class="competency-fill" style="width:' + c.completion + '%; background:var(--blue-400);"></div>' +
+        actionsHtml +=
+          '<button class="row-btn row-btn-success" data-action="approve-course" data-id="' +
+          c.id +
+          '">Approve</button>';
+
+      }
+
+
+      if (c.status !== "Archived") {
+
+        actionsHtml +=
+          '<button class="row-btn" data-action="archive-course" data-id="' +
+          c.id +
+          '">Archive</button>';
+
+      }
+
+
+      actionsHtml += "</div>";
+
+
+      html +=
+        '<tr>' +
+
+          /* Course */
+          '<td>' +
+            '<div style="font-weight:600; color:#fff;">' +
+              esc(c.title) +
             '</div>' +
-            '<span style="font-size:11px; color:var(--slate-400);">' + c.completion + '%</span>' +
-          '</div>' +
-        '</td>' +
-        '<td><span class="badge ' + badgeCls + '">' + esc(c.status) + '</span></td>' +
-        '<td>' + actionsHtml + '</td>' +
-      '</tr>';
+
+            '<div style="font-size:10px; color:var(--slate-500);">' +
+              esc(c.duration) +
+              ' &middot; ' +
+              esc(c.level) +
+            '</div>' +
+          '</td>' +
+
+
+          /* Trainer */
+          '<td>' +
+            esc(c.trainer || "—") +
+          '</td>' +
+
+
+          /* Skill */
+          '<td>' +
+            '<span class="badge badge-trainee">' +
+              esc(c.skill || "—") +
+            '</span>' +
+          '</td>' +
+
+
+          /* Enrollments */
+          '<td>' +
+            '<strong style="color:var(--slate-200);">' +
+              (c.enrollments || 0) +
+            '</strong>' +
+          '</td>' +
+
+
+          /* Completion */
+          '<td>' +
+            '<div style="display:flex; align-items:center; gap:8px; width:100px;">' +
+
+              '<div class="competency-track" style="flex:1; height:6px;">' +
+
+                '<div class="competency-fill" style="width:' +
+                  (c.completion || 0) +
+                  '%; background:var(--blue-400);">' +
+                '</div>' +
+
+              '</div>' +
+
+              '<span style="font-size:11px; color:var(--slate-400);">' +
+                (c.completion || 0) +
+                '%' +
+              '</span>' +
+
+            '</div>' +
+          '</td>' +
+
+
+          /* Status */
+          '<td>' +
+            '<span class="badge ' +
+              badgeCls +
+            '">' +
+              esc(c.status) +
+            '</span>' +
+          '</td>' +
+
+
+          /* Actions */
+          '<td>' +
+            actionsHtml +
+          '</td>' +
+
+        '</tr>';
     });
+
 
     tbody.innerHTML = html;
   }
@@ -744,6 +1202,185 @@
     });
 
     tbody.innerHTML = html;
+  }
+
+
+  function normalizeAssessmentScore(value, questionCount) {
+    var n = Number(value);
+
+    if (!Number.isFinite(n)) {
+      return 0;
+    }
+
+    // Backend returns raw score when it is within
+    // the number of questions.
+    if (questionCount > 0 && n <= questionCount) {
+      return Math.round((n / questionCount) * 100);
+    }
+
+    // Otherwise assume it is already a percentage.
+    return Math.round(n);
+  }
+
+  async function loadAdminAssessmentAnalytics() {
+    try {
+
+      var assessmentsResponse = await fetch(
+        ADMIN_API_BASE_URL + "/assessments"
+      );
+
+      if (!assessmentsResponse.ok) {
+        throw new Error(
+          "Assessments API returned " +
+          assessmentsResponse.status
+        );
+      }
+
+      var assessments =
+        await assessmentsResponse.json();
+
+      if (!Array.isArray(assessments)) {
+        throw new Error(
+          "Invalid assessments response from backend."
+        );
+      }
+
+      /* -----------------------------------------
+        Load all questions once
+        ----------------------------------------- */
+
+      var questionsResponse = await fetch(
+        ADMIN_API_BASE_URL + "/questions"
+      );
+
+      var questions = [];
+
+      if (questionsResponse.ok) {
+        questions = await questionsResponse.json();
+
+        if (!Array.isArray(questions)) {
+          questions = [];
+        }
+      }
+
+      /* -----------------------------------------
+        Build assessment rows
+        ----------------------------------------- */
+
+      var enrichedAssessments =
+        await Promise.all(
+          assessments.map(async function (assessment) {
+
+            /* Count questions belonging
+              to this assessment */
+
+            var questionCount =
+              questions.filter(function (question) {
+                return Number(question.assessment_id) ===
+                  Number(assessment.id);
+              }).length;
+
+            /* Load assessment analytics */
+
+            var stats = {
+              total_attempts: 0,
+              average_score: 0,
+              highest_score: 0,
+              lowest_score: 0
+            };
+
+            try {
+
+              var statsResponse = await fetch(
+                ADMIN_API_BASE_URL +
+                "/assessments/" +
+                assessment.id +
+                "/stats"
+              );
+
+              if (statsResponse.ok) {
+                stats = await statsResponse.json();
+              }
+
+            } catch (statsError) {
+
+              console.error(
+                "Failed to load assessment stats:",
+                assessment.id,
+                statsError
+              );
+            }
+
+            return {
+
+              id:
+                assessment.id,
+
+              title:
+                assessment.title ||
+                "Untitled Assessment",
+
+              skill:
+                assessment.skill ||
+                assessment.skill_name ||
+                "—",
+
+              trainer:
+                assessment.trainer ||
+                assessment.trainer_name ||
+                "—",
+
+              questions:
+                questionCount,
+
+              attempts:
+                Number(
+                  stats.total_attempts ?? 0
+                ),
+
+              avgScore:
+                normalizeAssessmentScore(
+                  stats.average_score ?? 0,
+                  questionCount
+                ),
+
+              highestScore:
+                Number(
+                  stats.highest_score ?? 0
+                ),
+
+              lowestScore:
+                Number(
+                  stats.lowest_score ?? 0
+                ),
+
+              status:
+                assessment.status ||
+                "Active"
+            };
+          })
+        );
+
+      state.assessments =
+        enrichedAssessments;
+
+      console.log(
+        "Admin Assessment Analytics:",
+        state.assessments
+      );
+
+      renderAssessmentsTable();
+
+    } catch (error) {
+
+      console.error(
+        "Failed to load assessment analytics:",
+        error
+      );
+
+      state.assessments = [];
+      renderAssessmentsTable();
+    }
   }
 
   // 6. Certificate Management Table (Section 8)
@@ -813,30 +1450,160 @@
     container.innerHTML = html;
   }
 
+  async function loadAdminUsersForTrainers() {
+    try {
+      var response = await fetch(
+        ADMIN_API_BASE_URL + "/admin/trainers"
+      );
+
+      if (!response.ok) {
+        throw new Error("Trainer API returned " + response.status);
+      }
+
+      var data = await response.json();
+
+      if (!Array.isArray(data)) {
+        throw new Error("Invalid trainers response from backend.");
+      }
+
+      state.trainers = data.map(function (trainer) {
+        var name = trainer.Name || trainer.name || "Unnamed Trainer";
+        var parts = name.trim().split(/\s+/);
+
+        var initials;
+
+        if (parts.length > 1) {
+          initials =
+            parts[0].charAt(0) +
+            parts[parts.length - 1].charAt(0);
+        } else {
+          initials = name.substring(0, 2);
+        }
+
+        return {
+          id: trainer.id,
+          name: name,
+          initials: initials.toUpperCase(),
+          email: trainer.Email || trainer.email || "",
+          role: "Trainer",
+
+          status: trainer.is_approved
+            ? "Active"
+            : "Pending Approval",
+
+          joined: trainer.created_at || "",
+
+          courses: Number(
+            trainer.course_count ?? 0
+          ),
+
+          trainees: Number(
+            trainer.trainee_count ?? 0
+          )
+        };
+      });
+
+      console.log(
+        "Trainer Monitoring - Backend Trainers:",
+        state.trainers
+      );
+
+      renderTrainersTable();
+
+    } catch (error) {
+      console.error(
+        "Trainer Monitoring API error:",
+        error
+      );
+
+      state.trainers = [];
+      renderTrainersTable();
+    }
+  }
+
+
   // 8. Trainer Monitoring Table (Section 11)
   function renderTrainersTable() {
     var tbody = document.getElementById("trainersTableBody");
     if (!tbody) return;
 
-    var html = "";
-    state.trainers.forEach(function (t) {
-      var availCls = t.availability === "Available" ? "badge-active" : "badge-pending";
+    var trainers = state.trainers || [];
 
-      html += '<tr>' +
-        '<td>' +
-          '<div class="user-cell">' +
-            '<div class="avatar avatar-sm avatar-grad">' + esc(t.initials) + '</div>' +
-            '<span class="user-name">' + esc(t.name) + '</span>' +
-          '</div>' +
-        '</td>' +
-        '<td><span class="badge badge-trainer">' + esc(t.expertise) + '</span></td>' +
-        '<td>' + t.courses + ' Courses</td>' +
-        '<td><strong>' + t.trainees + '</strong> Trainees</td>' +
-        '<td><span style="color:var(--amber-400); font-weight:700;">★ ' + t.rating + '</span></td>' +
-        '<td style="color:var(--slate-400);">' + esc(t.experience) + '</td>' +
-        '<td><span class="badge ' + availCls + '">' + esc(t.availability) + '</span></td>' +
-        '<td><span class="badge badge-active">' + esc(t.status) + '</span></td>' +
-      '</tr>';
+    if (trainers.length === 0) {
+      tbody.innerHTML =
+        '<tr>' +
+          '<td colspan="8" style="text-align:center; padding:40px; color:var(--slate-500);">' +
+            'No trainers found in the database.' +
+          '</td>' +
+        '</tr>';
+
+      return;
+    }
+
+    var html = "";
+
+    trainers.forEach(function (trainer) {
+
+      var statusClass =
+        trainer.status === "Active"
+          ? "badge-active"
+          : "badge-pending";
+
+      html +=
+        '<tr>' +
+
+          '<td>' +
+            '<div class="user-cell">' +
+              '<div class="avatar avatar-sm avatar-grad">' +
+                esc(trainer.initials) +
+              '</div>' +
+              '<span class="user-name">' +
+                esc(trainer.name) +
+              '</span>' +
+            '</div>' +
+          '</td>' +
+
+          '<td>' +
+            '<span class="badge badge-trainer">' +
+              'Trainer' +
+            '</span>' +
+          '</td>' +
+
+          '<td>' +
+            '<strong style="color:#fff;">' +
+              trainer.courses +
+            '</strong>' +
+          '</td>' +
+
+          '<td>' +
+            '<strong style="color:#fff;">' +
+              trainer.trainees +
+            '</strong>' +
+          '</td>' +
+
+          '<td>' +
+            '<span style="color:var(--slate-400); font-weight:700;">' +
+              '—' +
+            '</span>' +
+          '</td>' +
+
+          '<td style="color:var(--slate-400);">' +
+            '—' +
+          '</td>' +
+
+          '<td>' +
+            '<span class="badge badge-pending">' +
+              '—' +
+            '</span>' +
+          '</td>' +
+
+          '<td>' +
+            '<span class="badge ' + statusClass + '">' +
+              esc(trainer.status) +
+            '</span>' +
+          '</td>' +
+
+        '</tr>';
     });
 
     tbody.innerHTML = html;
@@ -1408,6 +2175,7 @@
           await loadPendingAdminUsers();
         } else {
           await loadAdminUsers();
+          renderTrainersTable();
         }
       });
     });
@@ -1628,7 +2396,7 @@
   }
 
   /* ---------------- Init ---------------- */
-  function init() {
+  async function init() {
     renderCompetencyBars();
     renderSkillGaps();
     renderUsersTable();
@@ -1641,8 +2409,13 @@
     renderParticipationChart();
     renderProfileForm();
     initEventListeners();
-    loadAdminDashboardStats();
-    loadAdminUsers();
+
+    await loadAdminDashboardStats();
+    await loadAdminUsers();
+    await loadCourseManagementData();
+    await loadAdminAssessmentAnalytics();
+    await loadAdminUsersForTrainers();
+
   }
 
   // Run on DOM ready

@@ -43,6 +43,10 @@
   }
 
   /* ---------------- seed data ---------------- */
+
+  var TRAINER_API_BASE_URL =
+    "https://capacity-connect-backend-ejbl.onrender.com";
+
   var SEED_COURSES = [
     { id: uid("c"), title: "Machine Learning Fundamentals", category: "AI / ML", level: "Intermediate", duration: "8 weeks", description: "Core concepts of supervised and unsupervised learning.", objectives: "Understand ML pipelines, evaluate models, apply algorithms", trainees: 42, completion: 78, status: "Published", color: "violet" },
     { id: uid("c"), title: "Python for Data Analysis", category: "Programming", level: "Beginner", duration: "6 weeks", description: "Hands-on Python for cleaning and analysing data.", objectives: "Use pandas, numpy and visualise datasets", trainees: 67, completion: 85, status: "Published", color: "cyan" },
@@ -116,11 +120,13 @@
 
   /* ---------------- state ---------------- */
   var state = {
-    courses: load(KEYS.courses, SEED_COURSES),
+    courses: [],
+    skills: [],
     assessments: load(KEYS.assessments, SEED_ASSESSMENTS),
     questionBank: load(KEYS.questionBank, SEED_QUESTION_BANK),
     resources: load(KEYS.resources, SEED_RESOURCES),
     trainees: load(KEYS.trainees, SEED_TRAINEES),
+    dashboardStats: null,
     notifications: load(KEYS.notifications, SEED_NOTIFICATIONS),
     profile: load(KEYS.profile, SEED_PROFILE),
     settings: load(KEYS.settings, SEED_SETTINGS),
@@ -227,13 +233,216 @@
   }
 
   /* ================= DASHBOARD ================= */
+
+  async function loadTrainerDashboardStats() {
+    var trainerId = localStorage.getItem("userId");
+
+    if (!trainerId) {
+      console.error("Trainer user ID not found in localStorage.");
+      state.dashboardStats = null;
+      return;
+    }
+
+    try {
+      var response = await fetch(
+        TRAINER_API_BASE_URL +
+        "/trainers/" +
+        encodeURIComponent(trainerId) +
+        "/dashboard/stats"
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          "Trainer dashboard API returned " + response.status
+        );
+      }
+
+      var data = await response.json();
+
+      state.dashboardStats = data;
+
+      console.log(
+        "Trainer Dashboard Stats:",
+        data
+      );
+
+    } catch (error) {
+      console.error(
+        "Failed to load trainer dashboard stats:",
+        error
+      );
+
+      state.dashboardStats = null;
+    }
+  }
+async function loadTrainerSkills() {
+  try {
+    var response = await fetch(
+      TRAINER_API_BASE_URL + "/skills"
+    );
+
+    if (!response.ok) {
+      throw new Error("Skills API returned " + response.status);
+    }
+
+    var skills = await response.json();
+
+    if (!Array.isArray(skills)) {
+      throw new Error("Invalid skills response");
+    }
+
+    state.skills = skills;
+
+    console.log("Trainer Skills:", state.skills);
+
+  } catch (error) {
+    console.error("Failed to load skills:", error);
+    state.skills = [];
+  }
+}
+
+
+  async function loadTrainerCourses() {
+    var trainerId = localStorage.getItem("userId");
+
+    if (!trainerId) {
+      console.error("Trainer user ID not found.");
+      state.courses = [];
+      return;
+    }
+
+    try {
+      var response = await fetch(
+        TRAINER_API_BASE_URL +
+        "/trainers/" +
+        encodeURIComponent(trainerId) +
+        "/courses"
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          "Trainer courses API returned " + response.status
+        );
+      }
+
+      var courses = await response.json();
+
+      if (!Array.isArray(courses)) {
+        throw new Error("Invalid courses response");
+      }
+
+      state.courses = courses.map(function (course, index) {
+
+        var skill = null;
+
+        if (Array.isArray(state.skills)) {
+          skill = state.skills.find(function (s) {
+            return Number(s.id) === Number(course.skill_id);
+          });
+        }
+
+        return {
+          id: course.id,
+          title: course.title || "Untitled Course",
+          description: course.description || "",
+          category: skill
+            ? skill.name
+            : "General",
+          level: course.difficulty || "Beginner",
+          duration: course.duration || "—",
+          resource_url: course.resource_ur1 || "",
+          skill_id: course.skill_id,
+          trainer_id: course.trainer_id,
+          trainees: Number(course.enrollment_count || 0),
+          completion: 0,
+          status: "Published",
+          color: ["violet", "cyan", "amber", "blue", "emerald", "rose"]
+            [index % 6]
+        };
+      });
+
+      console.log(
+        "Trainer Courses:",
+        state.courses
+      );
+
+    } catch (error) {
+
+      console.error(
+        "Failed to load trainer courses:",
+        error
+      );
+
+      state.courses = [];
+    }
+  }
+
+
   function statCards() {
-    var avgScore = Math.round(state.trainees.reduce(function (s, t) { return s + t.score; }, 0) / Math.max(1, state.trainees.length));
+    var stats = state.dashboardStats;
+
+    if (!stats) {
+      return [
+        {
+          label: "Total Courses",
+          value: "—",
+          sub: "Loading...",
+          icon: "book",
+          color: "blue"
+        },
+        {
+          label: "Total Trainees",
+          value: "—",
+          sub: "Loading...",
+          icon: "users",
+          color: "violet"
+        },
+        {
+          label: "Active Assessments",
+          value: "—",
+          sub: "Loading...",
+          icon: "filequestion",
+          color: "cyan"
+        },
+        {
+          label: "Average Trainee Score",
+          value: "—",
+          sub: "Loading...",
+          icon: "trending",
+          color: "emerald"
+        }
+      ];
+    }
+
     return [
-      { label: "Total Courses", value: String(state.courses.length), sub: state.courses.filter(function (c) { return c.status === "Published"; }).length + " active", icon: "book", color: "blue" },
-      { label: "Total Trainees", value: String(state.trainees.length), sub: "+" + Math.max(0, state.trainees.length - 3) + " this month", icon: "users", color: "violet" },
-      { label: "Active Assessments", value: String(state.assessments.length), sub: state.assessments.length + " total", icon: "filequestion", color: "cyan" },
-      { label: "Average Trainee Score", value: avgScore + "%", sub: "+6% this month", icon: "trending", color: "emerald" },
+      {
+        label: "Total Courses",
+        value: String(stats.total_courses ?? 0),
+        sub: "Courses managed",
+        icon: "book",
+        color: "blue"
+      },
+      {
+        label: "Total Trainees",
+        value: String(stats.total_trainees ?? 0),
+        sub: "Enrolled trainees",
+        icon: "users",
+        color: "violet"
+      },
+      {
+        label: "Active Assessments",
+        value: String(stats.active_assessments ?? 0),
+        sub: "Currently active",
+        icon: "filequestion",
+        color: "cyan"
+      },
+      {
+        label: "Average Trainee Score",
+        value: Math.round(Number(stats.average_trainee_score ?? 0)) + "%",
+        sub: "Average performance",
+        icon: "trending",
+        color: "emerald"
+      }
     ];
   }
 
@@ -368,7 +577,107 @@
     }).join("");
   }
 
-  /* ================= MY COURSES ================= */
+  function openManageCourseModal(course) {
+    if (!course) {
+      notify("Course not found");
+      return;
+    }
+
+    var body =
+      '<div class="form-grid">' +
+
+      '<div class="field wide">' +
+        '<span>Course title</span>' +
+        '<div style="padding:12px 14px;border:1px solid rgba(255,255,255,.08);border-radius:10px;background:rgba(255,255,255,.03);color:#fff">' +
+          esc(course.title) +
+        '</div>' +
+      '</div>' +
+
+      '<div class="field">' +
+        '<span>Skill / Subject</span>' +
+        '<div style="padding:12px 14px;border:1px solid rgba(255,255,255,.08);border-radius:10px;background:rgba(255,255,255,.03);color:#e2e8f0">' +
+          esc(course.category || "General") +
+        '</div>' +
+      '</div>' +
+
+      '<div class="field">' +
+        '<span>Difficulty</span>' +
+        '<div style="padding:12px 14px;border:1px solid rgba(255,255,255,.08);border-radius:10px;background:rgba(255,255,255,.03);color:#e2e8f0">' +
+          esc(course.level || "—") +
+        '</div>' +
+      '</div>' +
+
+      '<div class="field">' +
+        '<span>Duration</span>' +
+        '<div style="padding:12px 14px;border:1px solid rgba(255,255,255,.08);border-radius:10px;background:rgba(255,255,255,.03);color:#e2e8f0">' +
+          esc(course.duration || "—") +
+        '</div>' +
+      '</div>' +
+
+      '<div class="field">' +
+        '<span>Enrolled trainees</span>' +
+        '<div style="padding:12px 14px;border:1px solid rgba(255,255,255,.08);border-radius:10px;background:rgba(255,255,255,.03);color:#e2e8f0">' +
+          Number(course.trainees || 0) +
+        '</div>' +
+      '</div>' +
+
+      '<div class="field wide">' +
+        '<span>Description</span>' +
+        '<div style="padding:12px 14px;min-height:70px;border:1px solid rgba(255,255,255,.08);border-radius:10px;background:rgba(255,255,255,.03);color:#cbd5e1">' +
+          esc(course.description || "No description provided.") +
+        '</div>' +
+      '</div>' +
+
+      '<div class="field wide">' +
+        '<span>Learning resource</span>' +
+        '<div style="padding:12px 14px;border:1px solid rgba(255,255,255,.08);border-radius:10px;background:rgba(255,255,255,.03);overflow:hidden">' +
+          (
+            course.resource_url
+              ? '<a href="' + esc(course.resource_url) + '" target="_blank" rel="noopener" style="color:#60a5fa;text-decoration:none;word-break:break-all">' +
+                  esc(course.resource_url) +
+                '</a>'
+              : '<span style="color:#94a3b8">No resource URL</span>'
+          ) +
+        '</div>' +
+      '</div>' +
+
+      '</div>' +
+
+      '<div class="modal-footer">' +
+        '<button type="button" class="btn btn-ghost" id="mcClose">Close</button>' +
+        '<button type="button" class="btn btn-outline" id="mcEdit">Edit course</button>' +
+        '<button type="button" class="btn btn-primary" id="mcTrainees">View trainees</button>' +
+      '</div>';
+
+    showModal({
+      eyebrow: "Course management",
+      title: course.title,
+      body: body,
+      wide: true,
+
+      onMount: function () {
+
+        document
+          .getElementById("mcClose")
+          .addEventListener("click", closeModal);
+
+        document
+          .getElementById("mcEdit")
+          .addEventListener("click", function () {
+            closeModal();
+            openModal("course", course);
+          });
+
+        document
+          .getElementById("mcTrainees")
+          .addEventListener("click", function () {
+            closeModal();
+            setActive("trainees");
+          });
+      }
+    });
+  }
+    /* ================= MY COURSES ================= */
   function renderCoursesView() {
     var el = document.getElementById("coursesGrid");
     if (!state.courses.length) {
@@ -380,30 +689,86 @@
       return (
         '<div class="course-card"><div class="course-card-top"><div class="course-icon bg-' + c.color + '">' + svg("book", 18) + '</div><span class="badge ' + statusClass + '">' + esc(c.status) + '</span></div>' +
         '<h3 class="course-title">' + esc(c.title) + '</h3><div class="course-meta"><span>' + esc(c.category) + '</span><span>&bull;</span><span>' + esc(c.level) + '</span></div>' +
-        '<div class="course-stats"><span class="l">' + c.trainees + ' trainees</span><span class="n">' + c.completion + '% complete</span></div>' +
+        '<div class="course-stats"><span class="l">' + Number(c.trainees || 0) + ' trainees</span><span class="n">' + Number(c.completion || 0) + '% complete</span></div>' +
         '<div class="progress" style="margin-top:8px"><span class="bar-' + (c.color === "violet" ? "violet" : c.color === "cyan" ? "cyan" : "amber") + '" style="width:' + c.completion + '%"></span></div>' +
         '<div class="course-actions"><button class="btn btn-outline" data-manage="' + c.id + '">Manage course</button><button class="btn btn-ghost" data-view-trainees="' + c.id + '">View trainees</button></div>' +
         '<div class="course-actions" style="margin-top:8px"><button class="btn btn-outline" data-edit-course="' + c.id + '">Edit</button><button class="btn btn-outline" data-delete-course="' + c.id + '" style="color:#fb7185">Delete</button></div></div>'
       );
     }).join("");
 
-    Array.prototype.forEach.call(el.querySelectorAll("[data-manage]"), function (b) { b.addEventListener("click", function () { notify("Opening " + courseById(b.getAttribute("data-manage")).title); }); });
+    Array.prototype.forEach.call( el.querySelectorAll("[data-manage]"), function (b) { b.addEventListener("click", function () { var course = courseById( b.getAttribute("data-manage") ); openManageCourseModal(course); }); } );
     Array.prototype.forEach.call(el.querySelectorAll("[data-view-trainees]"), function (b) { b.addEventListener("click", function () { setActive("trainees"); }); });
     Array.prototype.forEach.call(el.querySelectorAll("[data-edit-course]"), function (b) { b.addEventListener("click", function () { openModal("course", courseById(b.getAttribute("data-edit-course"))); }); });
-    Array.prototype.forEach.call(el.querySelectorAll("[data-delete-course]"), function (b) {
-      b.addEventListener("click", function () {
-        var id = b.getAttribute("data-delete-course");
-        if (!confirm("Delete this course? This cannot be undone.")) return;
-        state.courses = state.courses.filter(function (c) { return c.id !== id; });
-        persist("courses");
-        renderCoursesView();
-        notify("Course deleted");
-      });
-    });
+    Array.prototype.forEach.call(
+      el.querySelectorAll("[data-delete-course]"),
+      function (b) {
+
+        b.addEventListener("click", async function () {
+
+          var id =
+            b.getAttribute("data-delete-course");
+
+          if (
+            !confirm(
+              "Delete this course? This cannot be undone."
+            )
+          ) {
+            return;
+          }
+
+          try {
+
+            var response = await fetch(
+              TRAINER_API_BASE_URL +
+              "/courses/" +
+              encodeURIComponent(id),
+              {
+                method: "DELETE"
+              }
+            );
+
+            if (!response.ok) {
+              throw new Error(
+                "Delete API returned " +
+                response.status +
+                ": " +
+                await response.text()
+              );
+            }
+
+            await loadTrainerCourses();
+
+            renderCoursesView();
+
+            notify("Course deleted successfully");
+
+          } catch (error) {
+
+            console.error(
+              "Failed to delete course:",
+              error
+            );
+
+            notify(
+              "Could not delete course: " + error.message
+            );
+          }
+        });
+      }
+    );
   }
   function courseById(id) {
+
     var found = null;
-    state.courses.forEach(function (c) { if (c.id === id) found = c; });
+
+    state.courses.forEach(function (c) {
+
+      if (String(c.id) === String(id)) {
+        found = c;
+      }
+
+    });
+
     return found;
   }
 
@@ -732,61 +1097,267 @@
 
   /* ---- Create / Edit Course ---- */
   function openCourseModal(existing) {
+
     var isEdit = !!existing;
+
+    var skillOptions = '<option value="">Select skill / subject</option>';
+
+    if (Array.isArray(state.skills)) {
+
+      state.skills.forEach(function (skill) {
+
+        var selected =
+          existing &&
+          Number(existing.skill_id) === Number(skill.id)
+            ? " selected"
+            : "";
+
+        skillOptions +=
+          '<option value="' +
+          esc(skill.id) +
+          '"' +
+          selected +
+          '>' +
+          esc(skill.name) +
+          '</option>';
+      });
+    }
+
     var body =
       '<div class="form-grid">' +
-      field("cfTitle", "Course title", "e.g. Deep Learning with PyTorch", true, "text", existing && existing.title) +
-      field("cfCategory", "Skill / subject", "Artificial Intelligence", false, "text", existing && existing.category) +
-      field("cfLevel", "Difficulty", "Intermediate", false, "text", existing && existing.level) +
-      field("cfDuration", "Duration", "8 weeks", false, "text", existing && existing.duration) +
-      '<label class="field"><span>Course status</span><select id="cfStatus"><option' + (!existing || existing.status === "Draft" ? " selected" : "") + '>Draft</option><option' + (existing && existing.status === "Published" ? " selected" : "") + '>Published</option></select></label>' +
-      '<label class="field wide"><span>Description</span><textarea id="cfDescription" rows="2" placeholder="What will trainees learn?">' + esc(existing && existing.description) + '</textarea></label>' +
-      '<label class="field wide"><span>Learning objectives</span><textarea id="cfObjectives" rows="2" placeholder="Add objectives separated by commas">' + esc(existing && existing.objectives) + "</textarea></label>" +
-      "</div>" +
-      '<div class="upload-box"><div class="upload-box-row">' + svg("upload", 17) + '<div><div class="upload-title">Add learning resources</div><div class="upload-sub">PDF, video, presentation or external link</div></div><button type="button" class="upload-browse" id="cfBrowseBtn">Browse</button></div></div>' +
-      '<div class="modal-footer"><button type="button" class="btn btn-ghost" id="cfCancel">Cancel</button><button type="button" class="btn btn-outline" id="cfDraft">Save draft</button><button type="button" class="btn btn-primary" id="cfPublish">Publish course</button></div>';
+
+      field(
+        "cfTitle",
+        "Course title",
+        "e.g. Deep Learning with PyTorch",
+        true,
+        "text",
+        existing && existing.title
+      ) +
+
+      '<label class="field">' +
+        '<span>Skill / subject</span>' +
+        '<select id="cfSkill">' +
+          skillOptions +
+        '</select>' +
+      '</label>' +
+
+      field(
+        "cfLevel",
+        "Difficulty",
+        "Intermediate",
+        true,
+        "text",
+        existing && existing.level
+      ) +
+
+      field(
+        "cfDuration",
+        "Duration",
+        "8 weeks",
+        true,
+        "text",
+        existing && existing.duration
+      ) +
+
+      field(
+        "cfResourceUrl",
+        "Learning resource URL",
+        "https://...",
+        true,
+        "url",
+        existing && existing.resource_url
+      ) +
+
+      '<label class="field wide">' +
+        '<span>Description</span>' +
+        '<textarea id="cfDescription" rows="3" placeholder="What will trainees learn?">' +
+          esc(existing && existing.description) +
+        '</textarea>' +
+      '</label>' +
+
+      '</div>' +
+
+      '<div class="upload-box">' +
+        '<div class="upload-box-row">' +
+          svg("upload", 17) +
+          '<div>' +
+            '<div class="upload-title">Learning resources</div>' +
+            '<div class="upload-sub">Use the resource URL above for the prototype</div>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+
+      '<div class="modal-footer">' +
+        '<button type="button" class="btn btn-ghost" id="cfCancel">Cancel</button>' +
+        '<button type="button" class="btn btn-primary" id="cfSave">' +
+          (isEdit ? "Save changes" : "Create course") +
+        '</button>' +
+      '</div>';
 
     showModal({
       eyebrow: "Course builder",
-      title: isEdit ? "Edit course" : "Create a new course",
+      title: isEdit
+        ? "Edit course"
+        : "Create a new course",
       body: body,
+
       onMount: function () {
-        document.getElementById("cfBrowseBtn").addEventListener("click", function () { notify("Resource attach is a prototype action"); });
-        document.getElementById("cfCancel").addEventListener("click", closeModal);
-        document.getElementById("cfDraft").addEventListener("click", function () { saveCourse(existing, "Draft"); });
-        document.getElementById("cfPublish").addEventListener("click", function () { saveCourse(existing, "Published"); });
-      },
+
+        document
+          .getElementById("cfCancel")
+          .addEventListener("click", closeModal);
+
+        document
+          .getElementById("cfSave")
+          .addEventListener("click", function () {
+            saveCourse(existing);
+          });
+      }
     });
   }
-  function saveCourse(existing, status) {
-    var title = document.getElementById("cfTitle").value.trim();
-    if (!title) { notify("Please enter a course title"); return; }
-    var colorCycle = ["violet", "cyan", "amber", "blue", "emerald", "rose"];
-    var data = {
-      id: existing ? existing.id : uid("c"),
-      title: title,
-      category: document.getElementById("cfCategory").value.trim() || "General",
-      level: document.getElementById("cfLevel").value.trim() || "Beginner",
-      duration: document.getElementById("cfDuration").value.trim() || "4 weeks",
-      description: document.getElementById("cfDescription").value.trim(),
-      objectives: document.getElementById("cfObjectives").value.trim(),
-      status: status,
-      color: existing ? existing.color : colorCycle[state.courses.length % colorCycle.length],
-      trainees: existing ? existing.trainees : 0,
-      completion: existing ? existing.completion : 0,
-    };
-    if (existing) {
-      state.courses = state.courses.map(function (c) { return c.id === existing.id ? data : c; });
-    } else {
-      state.courses.push(data);
-    }
-    persist("courses");
-    closeModal();
-    if (state.active === "courses") renderCoursesView();
-    if (state.active === "dashboard") renderDashboard();
-    notify(status === "Published" ? "Course published successfully" : "Course saved as draft");
-  }
+  async function saveCourse(existing) {
 
+    var title =
+      document.getElementById("cfTitle").value.trim();
+
+    var description =
+      document.getElementById("cfDescription").value.trim();
+
+    var skillId =
+      Number(document.getElementById("cfSkill").value);
+
+    var difficulty =
+      document.getElementById("cfLevel").value.trim();
+
+    var duration =
+      document.getElementById("cfDuration").value.trim();
+
+    var resourceUrl =
+      document.getElementById("cfResourceUrl").value.trim();
+
+    var trainerId =
+      localStorage.getItem("userId");
+
+    if (!title) {
+      notify("Please enter a course title");
+      return;
+    }
+
+    if (!skillId) {
+      notify("Please select a skill / subject");
+      return;
+    }
+
+    if (!difficulty) {
+      notify("Please enter the difficulty");
+      return;
+    }
+
+    if (!duration) {
+      notify("Please enter the duration");
+      return;
+    }
+
+    if (!resourceUrl) {
+      notify("Please enter a resource URL");
+      return;
+    }
+
+    if (!trainerId) {
+      notify("Trainer session not found");
+      return;
+    }
+
+    var payload = {
+      title: title,
+      description: description,
+      difficulty: difficulty,
+      duration: duration,
+      resource_url: resourceUrl,
+      skill_id: skillId,
+      trainer_id: trainerId
+    };
+
+    try {
+
+      var url = TRAINER_API_BASE_URL + "/courses";
+
+      var method = "POST";
+
+      if (existing) {
+        url =
+          TRAINER_API_BASE_URL +
+          "/courses/" +
+          encodeURIComponent(existing.id);
+
+        method = "PATCH";
+      }
+
+      var response = await fetch(url, {
+        method: method,
+
+        headers: {
+          "Content-Type": "application/json"
+        },
+
+        body: JSON.stringify(payload)
+      });
+
+      var responseText =
+        await response.text();
+
+      if (!response.ok) {
+
+        console.error(
+          "Course save failed:",
+          response.status,
+          responseText
+        );
+
+        throw new Error(
+          "Course API returned " +
+          response.status +
+          ": " +
+          responseText
+        );
+      }
+
+      console.log(
+        "Course API response:",
+        responseText
+      );
+
+      closeModal();
+
+      await loadTrainerCourses();
+
+      if (state.active === "courses") {
+        renderCoursesView();
+      }
+
+      if (state.active === "dashboard") {
+        renderDashboard();
+      }
+
+      notify(
+        existing
+          ? "Course updated successfully"
+          : "Course created successfully"
+      );
+
+    } catch (error) {
+
+      console.error(
+        "Failed to save course:",
+        error
+      );
+
+      notify(
+        "Could not save course: " + error.message
+      );
+    }
+  }
   /* ---- Create Assessment ---- */
   var assessmentQuestionCount = 1;
   function openAssessmentModal(existing) {
@@ -794,7 +1365,18 @@
     var body =
       '<div class="form-grid">' +
       field("asTitle", "Assessment title", "e.g. Neural Networks Check-in", true, "text", existing && existing.title) +
-      field("asSubject", "Subject / skill", "Machine Learning", false, "text", existing && existing.subject) +
+      '<label class="field"><span>Subject / skill</span><select id="asSubject"><option value="">Select a skill</option>' +
+      (Array.isArray(state.skills) ? state.skills.map(function (skill) {
+        var selected = existing && Number(existing.skill_id) === Number(skill.id)
+          ? " selected"
+          : (existing && existing.subject && existing.subject.toLowerCase() === String(skill.name).toLowerCase()
+              ? " selected"
+              : "");
+        return '<option value="' + esc(skill.name) + '" data-skill-id="' + skill.id + '"' + selected + '>' +
+          esc(skill.name) +
+          '</option>';
+      }).join("") : "") +
+      '</select></label>' +
       field("asNumQ", "Number of questions", "20", false, "number", existing && existing.numQuestions) +
       field("asTime", "Time limit", "20 minutes", false, "text", existing && existing.time) +
       field("asDeadline", "Deadline", "September 20, 2026", false, "text", existing && existing.deadline) +
@@ -850,42 +1432,325 @@
       });
     });
   }
-  function saveAssessment(existing) {
+  async function saveAssessment(existing) {
     var title = document.getElementById("asTitle").value.trim();
-    if (!title) { notify("Please enter an assessment title"); return; }
+
+    if (!title) {
+      notify("Please enter an assessment title");
+      return;
+    }
+
+    // Get questions from the ACTUAL question builder
     var blocks = document.querySelectorAll("#qBlocks .qblock");
     var questions = [];
+
     Array.prototype.forEach.call(blocks, function (block) {
-      var text = block.querySelector(".qb-question").value.trim();
-      var options = Array.prototype.map.call(block.querySelectorAll(".qb-option"), function (i) { return i.value.trim(); });
-      var checkedRadio = block.querySelector('input[type="radio"]:checked');
-      var correctIndex = checkedRadio ? Number(checkedRadio.value) : 0;
-      if (text) questions.push({ text: text, options: options, correctIndex: correctIndex });
+      var textEl = block.querySelector(".qb-question");
+
+      if (!textEl) return;
+
+      var text = textEl.value.trim();
+
+      var options = Array.prototype.map.call(
+        block.querySelectorAll(".qb-option"),
+        function (input) {
+          return input.value.trim();
+        }
+      );
+
+      var checkedRadio = block.querySelector(
+        'input[type="radio"]:checked'
+      );
+
+      var correctIndex = checkedRadio
+        ? Number(checkedRadio.value)
+        : 0;
+
+      if (text) {
+        questions.push({
+          text: text,
+          options: options,
+          correctIndex: correctIndex
+        });
+      }
     });
-    var numQ = Number(document.getElementById("asNumQ").value) || questions.length || 20;
-    var data = {
-      id: existing ? existing.id : uid("a"),
-      title: title,
-      subject: document.getElementById("asSubject").value.trim() || "General",
-      numQuestions: numQ,
-      time: document.getElementById("asTime").value.trim() || "20 minutes",
-      deadline: document.getElementById("asDeadline").value.trim() || "TBD",
-      description: document.getElementById("asDescription").value.trim(),
-      questions: questions,
-      completed: existing ? existing.completed : "0 / 0",
-      progress: existing ? existing.progress : 0,
-      status: "Active",
-    };
-    if (existing) {
-      state.assessments = state.assessments.map(function (a) { return a.id === existing.id ? data : a; });
-    } else {
-      state.assessments.push(data);
+
+    // IMPORTANT: don't continue if no questions were actually detected
+    if (questions.length === 0) {
+      notify("Please add at least one question");
+      return;
     }
-    persist("assessments");
-    closeModal();
-    if (state.active === "assessments") renderAssessmentsView();
-    if (state.active === "dashboard") renderDashboard();
-    notify("Assessment published successfully");
+
+    var trainerId = localStorage.getItem("userId");
+
+    if (!trainerId) {
+      notify("Trainer ID not found. Please login again.");
+      return;
+    }
+
+    var subject =
+      document.getElementById("asSubject").value.trim();
+
+    if (!subject) {
+      notify("Please enter a subject / skill");
+      return;
+    }
+
+    // Find matching skill from backend-loaded skills
+    var skill = Array.isArray(state.skills)
+      ? state.skills.find(function (s) {
+          return String(s.name).trim().toLowerCase() ===
+            subject.toLowerCase();
+        })
+      : null;
+
+    if (!skill) {
+      notify(
+        'Skill "' +
+          subject +
+          '" was not found. Use the exact skill name.'
+      );
+      return;
+    }
+
+    var description =
+      document.getElementById("asDescription").value.trim();
+
+    var deadline =
+      document.getElementById("asDeadline").value.trim();
+
+    var apiUrl =
+      TRAINER_API_BASE_URL + "/assessments";
+
+    try {
+      var assessment;
+
+      // -----------------------------
+      // CREATE ASSESSMENT
+      // -----------------------------
+      if (!existing) {
+        var assessmentResponse = await fetch(apiUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            title: title,
+            description: description,
+            skill_id: Number(skill.id),
+            trainer_id: trainerId,
+            total_questions: questions.length,
+            deadline: deadline || null
+          })
+        });
+
+        if (!assessmentResponse.ok) {
+          var errorText = await assessmentResponse.text();
+          throw new Error(
+            "Assessment creation failed: " +
+              assessmentResponse.status +
+              " " +
+              errorText
+          );
+        }
+
+        var assessmentData = await assessmentResponse.json();
+        assessment = Array.isArray(assessmentData)
+          ? assessmentData[0]
+          : assessmentData;
+
+        if (!assessment || !assessment.id) {
+          throw new Error("Assessment was created but no assessment ID was returned.");
+        }
+
+        console.log("Created assessment:", assessment);
+      }
+
+      // -----------------------------
+      // EDIT ASSESSMENT
+      // -----------------------------
+      else {
+        var assessmentResponse = await fetch(
+          apiUrl + "/" + existing.id,
+          {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              title: title,
+              description: description,
+              skill_id: Number(skill.id),
+              trainer_id: trainerId,
+              total_questions: questions.length,
+              deadline: deadline || null
+            })
+          }
+        );
+
+        if (!assessmentResponse.ok) {
+          var errorText = await assessmentResponse.text();
+          throw new Error(
+            "Assessment update failed: " +
+              assessmentResponse.status +
+              " " +
+              errorText
+          );
+        }
+
+        var assessmentData = await assessmentResponse.json();
+        assessment = Array.isArray(assessmentData)
+          ? assessmentData[0]
+          : assessmentData;
+
+        if (!assessment || !assessment.id) {
+          throw new Error("Assessment was updated but no assessment ID was returned.");
+        }
+
+        console.log("Updated assessment:", assessment);
+
+        // Get existing questions
+        var oldQuestionsResponse = await fetch(
+          TRAINER_API_BASE_URL + "/questions"
+        );
+
+        if (oldQuestionsResponse.ok) {
+          var allQuestions = await oldQuestionsResponse.json();
+
+          var oldQuestions = Array.isArray(allQuestions)
+            ? allQuestions.filter(function (q) {
+                return Number(q.assessment_id) ===
+                  Number(existing.id);
+              })
+            : [];
+
+          // Delete old questions
+          for (var i = 0; i < oldQuestions.length; i++) {
+            await fetch(
+              TRAINER_API_BASE_URL +
+                "/questions/" +
+                oldQuestions[i].id,
+              {
+                method: "DELETE"
+              }
+            );
+          }
+        }
+      }
+
+      var assessmentId = existing
+        ? Number(existing.id)
+        : Number(assessment.id);
+
+      if (!Number.isInteger(assessmentId)) {
+        throw new Error("Invalid assessment ID: " + assessmentId);
+      }
+      // -----------------------------
+      // CREATE QUESTIONS
+      // -----------------------------
+      for (var q = 0; q < questions.length; q++) {
+        var question = questions[q];
+
+        var questionResponse = await fetch(
+          TRAINER_API_BASE_URL + "/questions",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              assessment_id: Number(assessmentId),
+              question_text: question.text,
+              option_a: question.options[0] || "",
+              option_b: question.options[1] || "",
+              option_c: question.options[2] || "",
+              option_d: question.options[3] || "",
+              correct_option: String.fromCharCode(
+                65 + question.correctIndex
+              ),
+              marks: 1
+            })
+          }
+        );
+
+        if (!questionResponse.ok) {
+          var questionError =
+            await questionResponse.text();
+
+          throw new Error(
+            "Question " +
+              (q + 1) +
+              " failed: " +
+              questionResponse.status +
+              " " +
+              questionError
+          );
+        }
+      }
+
+      // -----------------------------
+      // UPDATE LOCAL STATE
+      // -----------------------------
+      var localAssessment = {
+        id: assessmentId,
+        title: title,
+        subject: subject,
+        numQuestions: questions.length,
+        time:
+          document.getElementById("asTime").value.trim() ||
+          "20 minutes",
+        deadline: deadline || "TBD",
+        description: description,
+        questions: questions,
+        completed: existing
+          ? existing.completed
+          : "0 / 0",
+        progress: existing
+          ? existing.progress
+          : 0,
+        status: "Active"
+      };
+
+      if (existing) {
+        state.assessments = state.assessments.map(
+          function (a) {
+            return a.id === existing.id
+              ? localAssessment
+              : a;
+          }
+        );
+      } else {
+        state.assessments.push(localAssessment);
+      }
+
+      persist("assessments");
+
+      closeModal();
+
+      if (state.active === "assessments") {
+        renderAssessmentsView();
+      }
+
+      if (state.active === "dashboard") {
+        renderDashboard();
+      }
+
+      notify(
+        existing
+          ? "Assessment updated successfully"
+          : "Assessment published successfully"
+      );
+
+      console.log(
+        "Assessment saved with",
+        questions.length,
+        "questions"
+      );
+
+    } catch (error) {
+      console.error("Assessment save error:", error);
+      notify(error.message || "Failed to save assessment");
+    }
   }
 
   /* ---- Question Bank add/edit ---- */
@@ -1093,18 +1958,24 @@
   }
 
   /* ---------------- init ---------------- */
-  function init() {
+  async function init() {
     wireNav();
     wireHeader();
     wireQuestionBankFilters();
     wireProfileForm();
     wireSettingsForm();
+
     updateHeaderProfile();
     updateNotifBadge();
     renderNotifPanel();
+
+    await Promise.all([
+      loadTrainerDashboardStats(),
+      loadTrainerSkills(),
+    ]);
+    await loadTrainerCourses();
     setActive("dashboard");
   }
-
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", init);
   } else {

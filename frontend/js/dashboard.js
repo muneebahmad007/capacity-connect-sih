@@ -244,12 +244,12 @@ const TRAINEE_DATA = {
 document.addEventListener('DOMContentLoaded', () => {
   initProfileDropdown();
   initDashboardSearch();
-  renderSkillsAndGaps(); // builds the Skills + Skill Gap cards from TRAINEE_DATA (also runs bar animation)
+  loadSkillGapsFromAPI();; // builds the Skills + Skill Gap cards from TRAINEE_DATA (also runs bar animation)
   initModalHandlers();
   initTiltCardsDashboard();
   initFeedbackForm();
   loadCoursesAndEnrollments();
-  loadAssessmentCardFromAPI(3);
+  loadAssessmentCardFromAPI(11);
 });
 
 /* --------------------------------------------------------------------------
@@ -337,8 +337,11 @@ const LEVEL_BADGE_ICON = {
 };
 
 function statusToSkillBadgeClass(status) {
+  if (status === 'Target Achieved') return 'badge-strong';
+  if (status === 'Needs Improvement') return 'badge-developing';
   if (status === 'Strong') return 'badge-strong';
   if (status === 'Developing') return 'badge-developing';
+
   return 'badge-danger';
 }
 
@@ -347,7 +350,13 @@ function syncSkillRowUI(skill) {
   if (!row) return;
 
   const valueBadge = row.querySelector('.skill-val-badge');
-  if (valueBadge) valueBadge.textContent = `${skill.score}%`;
+  if (valueBadge) {
+    const formattedScore = Number.isInteger(skill.score)
+      ? skill.score
+      : Number(skill.score.toFixed(2));
+
+    valueBadge.textContent = `${formattedScore}%`;
+  }
 
   const statusBadge = row.querySelector('.comp-badge');
   if (statusBadge) {
@@ -357,8 +366,9 @@ function syncSkillRowUI(skill) {
 
   const bar = row.querySelector('.skill-progress-bar');
   if (bar) {
-    bar.setAttribute('data-target-width', `${skill.score}%`);
-    bar.style.width = `${skill.score}%`;
+    const formattedScore = Number(skill.score.toFixed(2));
+    bar.setAttribute('data-target-width', `${formattedScore}%`);
+    bar.style.width = `${formattedScore}%`;
   }
 }
 
@@ -421,10 +431,523 @@ function syncGapCardUI(gap) {
   if (actionText) actionText.textContent = `Identified Action: ${gap.recommendedAction}`;
 }
 
+async function loadSkillGapsFromAPI() {
+  const userId = localStorage.getItem("userId");
+
+  if (!userId) {
+    console.warn("No userId found. Keeping existing skill-gap data.");
+    renderSkillsAndGaps();
+    return;
+  }
+
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/skill-gaps/${userId}`
+    );
+
+    if (!response.ok) {
+      throw new Error(`Skill gap request failed: ${response.status}`);
+    }
+
+    const skillGaps = await response.json();
+
+    if (!Array.isArray(skillGaps)) {
+      throw new Error("Invalid skill gap response.");
+    }
+
+    // Load skills so we can display the actual skill names.
+    const skillsResponse = await fetch(
+      `${API_BASE_URL}/skills`
+    );
+
+    if (!skillsResponse.ok) {
+      throw new Error(`Skills request failed: ${skillsResponse.status}`);
+    }
+
+    const skills = await skillsResponse.json();
+
+    // Convert backend skill-gap data into the structure
+    // already expected by the existing dashboard UI.
+    TRAINEE_DATA.skillGaps = skillGaps.map(gap => {
+      const matchedSkill = skills.find(
+        skill => String(skill.id) === String(gap.skills_id)
+      );
+
+      const current = Number(gap.current_score || 0);
+      const target = Number(gap.target_score || 80);
+      const gapScore = Math.max(0, target - current);
+      const displayGap = Number(gapScore.toFixed(2));
+
+      let levelClass = "danger";
+
+      if (gapScore === 0) {
+        levelClass = "success";
+      } else if (gapScore <= 20) {
+        levelClass = "warning";
+      }
+
+      return {
+        id: `gap-${gap.skills_id}`,
+        skill: matchedSkill?.name || `Skill ${gap.skills_id}`,
+        current,
+        target,
+        gap: displayGap,
+        status: gap.status,
+        levelClass,
+        recommendedAction:
+          gapScore > 0
+            ? `Improve ${matchedSkill?.name || "this skill"} competency to reach the ${target}% target.`
+            : "Target competency achieved. Maintain your current performance."
+      };
+    });
+
+    // Show the largest gaps first.
+    TRAINEE_DATA.skillGaps.sort(
+      (a, b) => b.gap - a.gap
+    );
+
+    // Use the latest assessment skill scores for "My Skills".
+    TRAINEE_DATA.skills = TRAINEE_DATA.skillGaps.map(gap => ({
+      id: String(
+        Number(
+          gap.id.replace("gap-", "")
+        )
+      ),
+      name: gap.skill,
+      score: Number(gap.current || 0),
+      icon: "📊",
+      category: "Competency",
+      status: gap.status
+    }));
+
+renderSkillsAndGaps();
+
+    renderSkillsAndGaps();
+
+    console.log(
+      "Live skill gaps loaded:",
+      TRAINEE_DATA.skillGaps
+    );
+
+  } catch (error) {
+    console.error("Skill Gap API load failed:", error);
+
+    showToast(
+      "Unable to load live skill-gap data.",
+      "error"
+    );
+
+    // Keep the existing UI working if API fails.
+    renderSkillsAndGaps();
+  }
+}
+
+function renderMySkillsFromSkillGaps() {
+  const container = document.getElementById("mySkillsGrid");
+
+  if (!container) {
+    console.warn("My Skills container not found.");
+    return;
+  }
+
+  const skillMeta = {
+    8: {
+      name: "Programming",
+      displayName: "Programming (Python, C++)",
+      icon: "💻"
+    },
+    9: {
+      name: "Database",
+      displayName: "Database (SQL, Schema Design)",
+      icon: "🗄️"
+    },
+    10: {
+      name: "AI / ML",
+      displayName: "AI / ML (Algorithms, Models)",
+      icon: "🤖"
+    },
+    11: {
+      name: "Problem Solving",
+      displayName: "Problem Solving",
+      icon: "🧩"
+    },
+    12: {
+      name: "Communication",
+      displayName: "Communication & Team Collaboration",
+      icon: "💬"
+    },
+    13: {
+      name: "Data / Analytical Skills",
+      displayName: "Data / Analytical Skills",
+      icon: "📊"
+    }
+  };
+
+  const orderedGaps = [...TRAINEE_DATA.skillGaps].sort(
+    (a, b) => Number(a.id.replace("gap-", "")) -
+              Number(b.id.replace("gap-", ""))
+  );
+
+  container.innerHTML = orderedGaps.map(gap => {
+    const skillId = Number(
+      String(gap.id).replace("gap-", "")
+    );
+
+    const meta = skillMeta[skillId] || {
+      name: gap.skill,
+      displayName: gap.skill,
+      icon: "📊"
+    };
+
+    const score = Number(gap.current || 0);
+
+    const displayScore = Number.isInteger(score)
+      ? score
+      : Number(score.toFixed(2));
+
+    let badgeClass = "badge-danger";
+
+    if (gap.status === "Target Achieved") {
+      badgeClass = "badge-strong";
+    } else if (gap.status === "Needs Improvement") {
+      badgeClass = "badge-developing";
+    }
+
+    return `
+      <div
+        class="skill-row-item"
+        data-searchable
+        data-skill-id="${skillId}"
+      >
+
+        <div class="skill-header-meta">
+
+          <div class="skill-name-wrap">
+
+            <div class="skill-icon-mini">
+              ${meta.icon}
+            </div>
+
+            <span class="skill-title-text">
+              ${meta.displayName}
+            </span>
+
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 8px;">
+
+            <span class="comp-badge ${badgeClass}">
+              ${gap.status}
+            </span>
+
+            <span class="skill-val-badge">
+              ${displayScore}%
+            </span>
+
+          </div>
+
+        </div>
+
+        <div class="skill-progress-track">
+
+          <div
+            class="skill-progress-bar skill-${skillId}"
+            data-target-width="${displayScore}%"
+            style="width: 0%"
+          ></div>
+
+        </div>
+
+      </div>
+    `;
+  }).join("");
+}
+
+function renderSkillGapCards() {
+  const container = document.getElementById("skillGapComparisonList");
+
+  if (!container) {
+    console.warn("Skill Gap Analysis container not found.");
+    return;
+  }
+
+  const skillMeta = {
+    8: {
+      name: "Programming",
+      icon: "💻",
+      track: "Programming Fundamentals • Data Structures • Algorithms"
+    },
+    9: {
+      name: "Database",
+      icon: "🗄️",
+      track: "SQL • Database Design • Query Optimization"
+    },
+    10: {
+      name: "AI / ML",
+      icon: "🤖",
+      track: "Machine Learning • Algorithms • Neural Systems"
+    },
+    11: {
+      name: "Problem Solving",
+      icon: "🧩",
+      track: "Algorithms • Logical Thinking • Decomposition"
+    },
+    12: {
+      name: "Communication",
+      icon: "💬",
+      track: "Active Listening • Feedback • Team Communication"
+    },
+    13: {
+      name: "Data / Analytical Skills",
+      icon: "📊",
+      track: "Data Interpretation • Statistics • Analysis"
+    }
+  };
+
+  const formatPercent = value => {
+    const number = Number(value || 0);
+
+    return Number.isInteger(number)
+      ? `${number}%`
+      : `${number.toFixed(2)}%`;
+  };
+
+  container.innerHTML = TRAINEE_DATA.skillGaps.map(gap => {
+
+    const skillId = Number(
+      String(gap.id).replace("gap-", "")
+    );
+
+    const meta = skillMeta[skillId] || {
+      name: gap.skill,
+      icon: "📊",
+      track: "Competency Development"
+    };
+
+    const level = gap.levelClass || "danger";
+
+    const color =
+      LEVEL_COLOR_VAR[level] ||
+      LEVEL_COLOR_VAR.danger;
+
+    const current = Number(gap.current || 0);
+    const target = Number(gap.target || 80);
+    const gapScore = Math.max(
+      0,
+      Number(gap.gap || 0)
+    );
+
+    const gapWidth = Math.max(
+      0,
+      target - current
+    );
+
+    return `
+      <div
+        class="gap-card-item ${level}"
+        data-searchable
+        data-gap-id="${gap.id}"
+      >
+
+        <!-- Header -->
+        <div class="gap-item-top">
+
+          <div class="gap-title-group">
+
+            <div
+              class="gap-skill-icon-pill"
+              style="
+                background: rgba(255,255,255,0.04);
+                border-color: rgba(255,255,255,0.12);
+              "
+            >
+              ${meta.icon}
+            </div>
+
+            <div>
+
+              <h3 class="gap-item-name">
+                ${meta.name}
+              </h3>
+
+              <span class="gap-item-track-tag">
+                ${meta.track}
+              </span>
+
+            </div>
+
+          </div>
+
+          <span class="gap-badge-pill ${level}">
+            ${LEVEL_BADGE_ICON[level] || ""}
+            ${gap.status}
+          </span>
+
+        </div>
+
+
+        <!-- Current → Target Visual -->
+        <div class="gap-visual-comparison-block">
+
+          <div class="gap-endpoints-row">
+
+            <div class="gap-endpoint-info current">
+
+              <span class="gap-endpoint-label">
+                Current Level
+              </span>
+
+              <span
+                class="gap-endpoint-val current-${level}"
+              >
+                ${formatPercent(current)}
+              </span>
+
+            </div>
+
+
+            <div class="gap-callout-center ${level}">
+
+              <span>
+                ${gapScore > 0 ? "▲" : "✓"}
+              </span>
+
+              <span>
+                ${formatPercent(gapScore)} SKILL GAP
+              </span>
+
+            </div>
+
+
+            <div class="gap-endpoint-info target">
+
+              <span class="gap-endpoint-label">
+                Target Level
+              </span>
+
+              <span class="gap-endpoint-val target-benchmark">
+                ${formatPercent(target)} 🎯
+              </span>
+
+            </div>
+
+          </div>
+
+
+          <!-- Visual Gauge -->
+          <div class="gap-multi-track">
+
+            <div
+              class="gap-segment-current ${level}"
+              style="width: ${Math.min(current, 100)}%;"
+            ></div>
+
+            <div
+              class="gap-segment-bridge ${level}"
+              style="
+                left: ${Math.min(current, 100)}%;
+                width: ${Math.min(gapWidth, 100 - Math.min(current, 100))}%;
+              "
+            ></div>
+
+            <div
+              class="gap-target-milestone"
+              title="Target Benchmark: ${formatPercent(target)}"
+              style="left: ${Math.min(target, 100)}%;"
+            ></div>
+
+          </div>
+
+        </div>
+
+
+        <!-- Metrics -->
+        <div class="gap-metrics-grid-4">
+
+          <div class="gap-mini-chip">
+
+            <span>
+              Current Level
+            </span>
+
+            <strong style="color: ${color};">
+              ${formatPercent(current)}
+            </strong>
+
+          </div>
+
+
+          <div class="gap-mini-chip">
+
+            <span>
+              Target Level
+            </span>
+
+            <strong style="color: var(--accent-emerald);">
+              ${formatPercent(target)}
+            </strong>
+
+          </div>
+
+
+          <div class="gap-mini-chip">
+
+            <span>
+              Skill Gap
+            </span>
+
+            <strong style="color: ${color};">
+              ${formatPercent(gapScore)} Gap
+            </strong>
+
+          </div>
+
+
+          <div class="gap-mini-chip">
+
+            <span>
+              Status
+            </span>
+
+            <strong style="color: ${color};">
+              ${gap.status}
+            </strong>
+
+          </div>
+
+        </div>
+
+
+        <!-- Action -->
+        <div class="gap-action-footer">
+
+          <span>
+            Identified Action:
+            ${gap.recommendedAction}
+          </span>
+
+          <a
+            href="#recommended-courses-section"
+            class="gap-action-link"
+          >
+            View Matched Courses &rarr;
+          </a>
+
+        </div>
+
+      </div>
+    `;
+  }).join("");
+}
+
 function renderSkillsAndGaps() {
-  TRAINEE_DATA.skills.forEach(syncSkillRowUI);
-  TRAINEE_DATA.skillGaps.forEach(syncGapCardUI);
-  initSkillBarAnimations(); // (re)trigger the width transition with the new values
+  // My Skills uses the latest assessment data
+  renderMySkillsFromSkillGaps();
+
+  // Skill Gap Analysis also uses the same latest assessment data
+  renderSkillGapCards();
+
+  initSkillBarAnimations();
 }
 
 /* --------------------------------------------------------------------------
@@ -873,7 +1396,7 @@ let assessmentSubmitting = false;
    LOAD UPCOMING ASSESSMENT CARD FROM BACKEND
    ------------------------------------------------------------ */
 
-async function loadAssessmentCardFromAPI(assessmentId = 3) {
+async function loadAssessmentCardFromAPI(assessmentId = 11) {
   const titleElement = document.getElementById("upcomingAssessmentTitle");
   const subjectElement = document.getElementById("upcomingAssessmentSubject");
   const questionCountElement = document.getElementById(
@@ -1015,7 +1538,7 @@ async function loadAssessmentCardFromAPI(assessmentId = 3) {
    Hardcoded question banks (including correctIndex) are not used.
    ------------------------------------------------------------ */
 
-async function loadAssessmentFromAPI(assessmentId = 3) {
+async function loadAssessmentFromAPI(assessmentId = 11) {
   const userId = localStorage.getItem("userId");
 
   if (!userId) {
@@ -1124,7 +1647,7 @@ async function loadAssessmentFromAPI(assessmentId = 3) {
 
 async function handleStartAssessment() {
 
-  const loaded = await loadAssessmentFromAPI(3);
+  const loaded = await loadAssessmentFromAPI(11);
 
   if (!loaded) {
     return;
@@ -1724,7 +2247,10 @@ function showAssessmentResultsFromAPI(
 ) {
 
   const result = data.result || {};
-  const skillGap = data.skill_gap || {};
+
+  const skillGaps = Array.isArray(data.skill_gaps)
+    ? data.skill_gaps
+    : [];
 
   const score = Number(result.score || 0);
   const totalMarks = Number(result.total_marks || 0);
@@ -1742,24 +2268,230 @@ function showAssessmentResultsFromAPI(
   const attemptNumber =
     Number(result.attempt_number || 1);
 
-  const currentGap =
-    Number(skillGap.gap_score || 0);
 
-  const target =
-    Number(skillGap.target_score || 80);
+  const skillNames = {
+    8: "Programming",
+    9: "Database",
+    10: "AI/ML",
+    11: "Problem Solving",
+    12: "Communication",
+    13: "Data/Analytical Skills"
+  };
+  TRAINEE_DATA.skillGaps = skillGaps.map(gap => {
 
-  const status =
-    skillGap.status || "Not Available";
+    const current = Number(gap.current_score || 0);
+    const target = Number(gap.target_score || 80);
+    const gapScore = Math.max(0, target - current);
 
-  let gapLevelClass = "danger";
+    let levelClass = "danger";
 
-  if (status === "Target Achieved") {
-    gapLevelClass = "success";
-  } else if (status === "Needs Improvement") {
-    gapLevelClass = "warning";
-  }
+    if (gapScore === 0) {
+      levelClass = "success";
+    } else if (gapScore <= 20) {
+      levelClass = "warning";
+    }
+
+    return {
+      id: `gap-${gap.skills_id}`,
+      skill: skillNames[Number(gap.skills_id)] || `Skill ${gap.skills_id}`,
+      current,
+      target,
+      gap: gapScore,
+      status: gap.status || "Not Available",
+      levelClass,
+      recommendedAction:
+        gapScore > 0
+          ? `Improve ${
+              skillNames[Number(gap.skills_id)] || "this skill"
+            } competency to reach the ${target}% target.`
+          : "Target competency achieved. Maintain your current performance."
+    };
+  });
+
+  TRAINEE_DATA.skillGaps.sort(
+    (a, b) => b.gap - a.gap
+  );
+
+  const getStatusClass = (status) => {
+
+    if (status === "Target Achieved") {
+      return "success";
+    }
+
+    if (status === "Needs Improvement") {
+      return "warning";
+    }
+
+    return "danger";
+  };
+
+
+  const getStatusColor = (status) => {
+
+    if (status === "Target Achieved") {
+      return "var(--accent-emerald)";
+    }
+
+    if (status === "Needs Improvement") {
+      return "var(--accent-amber)";
+    }
+
+    return "#ef4444";
+  };
+
+
+  const skillGapHTML = skillGaps.length
+    ? skillGaps.map(gap => {
+
+        const skillId = Number(gap.skills_id);
+
+        const skillName =
+          skillNames[skillId] ||
+          `Skill ${skillId}`;
+
+        const current =
+          Number(gap.current_score || 0);
+
+        const target =
+          Number(gap.target_score || 80);
+
+        const gapScore =
+          Number(gap.gap_score || 0);
+
+        const status =
+          gap.status || "Not Available";
+
+        const statusColor =
+          getStatusColor(status);
+
+        return `
+          <div style="
+            background:rgba(255,255,255,0.03);
+            border:1px solid var(--border-subtle);
+            border-radius:12px;
+            padding:14px;
+            margin-bottom:10px;
+          ">
+
+            <div style="
+              display:flex;
+              justify-content:space-between;
+              align-items:center;
+              gap:10px;
+              margin-bottom:8px;
+            ">
+
+              <div style="
+                color:#fff;
+                font-weight:800;
+                font-size:0.95rem;
+              ">
+                ${skillName}
+              </div>
+
+              <div style="
+                color:${statusColor};
+                font-weight:800;
+                font-size:0.8rem;
+              ">
+                ${status}
+              </div>
+
+            </div>
+
+
+            <div style="
+              display:grid;
+              grid-template-columns:
+                repeat(3, 1fr);
+              gap:8px;
+            ">
+
+              <div style="
+                background:rgba(255,255,255,0.03);
+                border-radius:8px;
+                padding:9px;
+              ">
+                <div style="
+                  color:var(--text-muted);
+                  font-size:0.68rem;
+                ">
+                  Current
+                </div>
+
+                <div style="
+                  color:#fff;
+                  font-weight:800;
+                  margin-top:3px;
+                ">
+                  ${current}%
+                </div>
+              </div>
+
+
+              <div style="
+                background:rgba(255,255,255,0.03);
+                border-radius:8px;
+                padding:9px;
+              ">
+                <div style="
+                  color:var(--text-muted);
+                  font-size:0.68rem;
+                ">
+                  Target
+                </div>
+
+                <div style="
+                  color:var(--accent-emerald);
+                  font-weight:800;
+                  margin-top:3px;
+                ">
+                  ${target}%
+                </div>
+              </div>
+
+
+              <div style="
+                background:rgba(255,255,255,0.03);
+                border-radius:8px;
+                padding:9px;
+              ">
+                <div style="
+                  color:var(--text-muted);
+                  font-size:0.68rem;
+                ">
+                  Gap
+                </div>
+
+                <div style="
+                  color:${statusColor};
+                  font-weight:800;
+                  margin-top:3px;
+                ">
+                  ${gapScore}%
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+        `;
+
+      }).join("")
+    : `
+      <div style="
+        color:var(--text-muted);
+        font-size:0.85rem;
+        text-align:center;
+        padding:12px;
+      ">
+        Skill-wise results are not available.
+      </div>
+    `;
+
 
   const content = `
+
     <div style="
       text-align:center;
       margin-bottom:22px;
@@ -1782,6 +2514,7 @@ function showAssessmentResultsFromAPI(
       </div>
 
     </div>
+
 
     <div style="
       display:grid;
@@ -1816,6 +2549,7 @@ function showAssessmentResultsFromAPI(
 
       </div>
 
+
       <div style="
         background:rgba(255,255,255,0.03);
         border:1px solid var(--border-subtle);
@@ -1844,6 +2578,7 @@ function showAssessmentResultsFromAPI(
 
     </div>
 
+
     <div style="
       background:rgba(255,255,255,0.03);
       border:1px solid var(--border-subtle);
@@ -1856,35 +2591,15 @@ function showAssessmentResultsFromAPI(
         color:var(--text-muted);
         font-size:0.72rem;
         text-transform:uppercase;
-        margin-bottom:4px;
+        margin-bottom:12px;
       ">
-        Skill Gap
+        Competency Breakdown
       </div>
 
-      <div style="
-        color:#fff;
-        font-size:1.15rem;
-        font-weight:800;
-      ">
-        ${currentGap}% Gap
-      </div>
-
-      <div style="
-        margin-top:5px;
-        color:var(--text-secondary);
-        font-size:0.82rem;
-      ">
-        Current: ${percentage}% &nbsp; | &nbsp; Target: ${target}%
-      </div>
-
-      <div style="
-        margin-top:10px;
-        font-weight:800;
-      ">
-        ${status}
-      </div>
+      ${skillGapHTML}
 
     </div>
+
 
     ${
       isAutoSubmit
@@ -1904,13 +2619,14 @@ function showAssessmentResultsFromAPI(
         : ""
     }
 
+
     <button
       type="button"
       class="btn btn-primary"
       style="width:100%;"
       onclick="
         closeModal();
-        renderSkillsAndGaps();
+        loadSkillGapsFromAPI();
         showToast(
           'Assessment result saved successfully.',
           'success'
@@ -1919,7 +2635,9 @@ function showAssessmentResultsFromAPI(
     >
       Return to Dashboard ✓
     </button>
+
   `;
+
 
   openModal(
     "Assessment Results",
@@ -2020,6 +2738,7 @@ function setModalRating(stars) {
 const API_BASE_URL = "https://capacity-connect-backend-ejbl.onrender.com";
 let apiCourses = [];
 let apiEnrollments = [];
+let apiRecommendations = [];
 
 function applyEnrolledStyle(buttonElem) {
   if (!buttonElem) return;
@@ -2104,60 +2823,180 @@ async function loadCoursesAndEnrollments() {
       console.error("Failed to load user enrollments:", err);
     }
   }
+    // TEST: Load live course recommendations
+  if (userId) {
+    try {
+      const recommendationResponse = await fetch(
+        `${API_BASE_URL}/api/recommendations/${userId}`
+      );
 
+      const recommendationData = await recommendationResponse.json();
+
+      console.log(
+        "🔥 LIVE COURSE RECOMMENDATIONS:",
+        recommendationData
+      );
+    } catch (error) {
+      console.error(
+        "Course recommendation API failed:",
+        error
+      );
+    }
+  }
+    // 3. Load personalized course recommendations
+  if (userId) {
+    try {
+      const resRecommendations = await fetch(
+        `${API_BASE_URL}/api/recommendations/${userId}`
+      );
+
+      if (resRecommendations.ok) {
+        const recommendationData = await resRecommendations.json();
+
+        apiRecommendations = Array.isArray(recommendationData.recommendations)
+          ? recommendationData.recommendations
+          : [];
+
+        console.log(
+          "🔥 LIVE COURSE RECOMMENDATIONS:",
+          apiRecommendations
+        );
+      } else {
+        console.error(
+          "Failed to load course recommendations:",
+          resRecommendations.status
+        );
+        apiRecommendations = [];
+      }
+    } catch (err) {
+      console.error("Failed to load course recommendations:", err);
+      apiRecommendations = [];
+    }
+  }
   renderRecommendedCourses();
   renderMyCourses();
 }
 
 function renderRecommendedCourses() {
-  const container = document.getElementById('recommendedCoursesGrid') || document.querySelector('#recommended-courses-section .dash-courses-grid');
+  const container =
+    document.getElementById('recommendedCoursesGrid') ||
+    document.querySelector('#recommended-courses-section .dash-courses-grid');
+
   if (!container) return;
 
-  const enrolledCourseIds = new Set((apiEnrollments || []).map(e => Number(e.course_id || (e.course && e.course.id))));
+  const enrolledCourseIds = new Set(
+    (apiEnrollments || []).map(
+      e => Number(e.course_id || (e.course && e.course.id))
+    )
+  );
 
-  if (apiCourses && apiCourses.length > 0) {
-    container.innerHTML = apiCourses.map(course => {
-      const isEnrolled = enrolledCourseIds.has(Number(course.id));
-      const skillName = course.skill || (course.title && course.title.toLowerCase().includes('database') ? 'Database' : 'AI / ML');
-      const isDb = skillName.toLowerCase().includes('database');
-      const tagStyle = isDb ? ' style="background: rgba(6,182,212,0.12); color: var(--accent-cyan); border-color: rgba(6,182,212,0.3);"' : '';
+  // Only show courses returned by the recommendation engine
+  const recommendations = Array.isArray(apiRecommendations)
+    ? apiRecommendations
+    : [];
 
-      return `
-        <div class="dash-course-card" data-searchable>
-          <div>
-            <span class="dash-course-tag"${tagStyle}>Skill: ${skillName}</span>
-            <h3 class="dash-course-title">${course.title}</h3>
-            <p class="dash-course-desc">${course.description}</p>
-          </div>
-          <div>
-            <div class="dash-course-meta-row">
-              <span>Difficulty: <strong>${course.difficulty || 'Beginner'}</strong></span>
-              <span>Duration: <strong>${course.duration || '6 Weeks'}</strong></span>
-            </div>
-            <button 
-              type="button" 
-              class="btn ${isEnrolled ? 'btn-secondary' : 'btn-primary'} btn-sm" 
-              style="width: 100%;${isEnrolled ? ' border-color: var(--accent-emerald); color: var(--accent-emerald);' : ''}" 
-              data-course-id="${course.id}"
-              ${isEnrolled ? 'data-enrolled="true"' : ''}
-              onclick="handleCourseEnroll(${course.id}, this)">
-              ${isEnrolled ? '✓ Enrolled' : 'Enroll in Course'}
-            </button>
-          </div>
-        </div>
-      `;
-    }).join('');
-  } else {
-    // If cards were rendered statically, sync button states
-    container.querySelectorAll('button[data-course-id]').forEach(btn => {
-      const cId = Number(btn.dataset.courseId);
-      if (enrolledCourseIds.has(cId)) {
-        applyEnrolledStyle(btn);
-      }
-    });
+  if (recommendations.length === 0) {
+    container.innerHTML = `
+      <div class="dash-empty-state">
+        <p>No course recommendations available yet.</p>
+      </div>
+    `;
+    return;
   }
 
-  initTiltCardsDashboard();
+  container.innerHTML = recommendations.map((course, index) => {
+    const courseId = Number(course.course_id);
+    const isEnrolled = enrolledCourseIds.has(courseId);
+
+    const skillName =
+      course.skill?.name ||
+      'Recommended Skill';
+
+    const difficulty =
+      course.difficulty ||
+      'Beginner';
+
+    const duration =
+      course.duration ||
+      '6 Weeks';
+
+    const reason =
+      course.reason ||
+      'Recommended based on your current skill gaps.';
+
+    const score =
+      typeof course.score === 'number'
+        ? Math.round(course.score * 100)
+        : null;
+
+    const isDb =
+      skillName.toLowerCase().includes('database');
+
+    const tagStyle = isDb
+      ? ' style="background: rgba(6,182,212,0.12); color: var(--accent-cyan); border-color: rgba(6,182,212,0.3);"'
+      : '';
+
+    return `
+      <div class="dash-course-card" data-searchable>
+
+        <div>
+          <span class="dash-course-tag"${tagStyle}>
+            Skill: ${skillName}
+          </span>
+
+          <h3 class="dash-course-title">
+            ${course.title}
+          </h3>
+
+          <p class="dash-course-desc">
+            ${course.description || 'Recommended for your skill development.'}
+          </p>
+
+          <p class="dash-course-desc" style="margin-top: 8px;">
+            <strong>Why recommended:</strong>
+            ${reason}
+          </p>
+        </div>
+
+        <div>
+
+          <div class="dash-course-meta-row">
+            <span>
+              Difficulty:
+              <strong>${difficulty}</strong>
+            </span>
+
+            <span>
+              Duration:
+              <strong>${duration}</strong>
+            </span>
+          </div>
+
+          ${
+            score !== null
+              ? `
+                <div style="font-size: 12px; opacity: 0.7; margin: 8px 0;">
+                  Recommendation score: ${score}%
+                </div>
+              `
+              : ''
+          }
+
+          <button
+            type="button"
+            class="btn ${isEnrolled ? 'btn-secondary' : 'btn-primary'} btn-sm"
+            style="width: 100%;${isEnrolled ? 'border-color: var(--accent-emerald); color: var(--accent-emerald);' : ''}"
+            ${isEnrolled ? 'disabled' : ''}
+            onclick="${isEnrolled ? '' : `handleEnrollCourse(${courseId})`}"
+          >
+            ${isEnrolled ? '✓ Enrolled' : 'Enroll Now'}
+          </button>
+
+        </div>
+
+      </div>
+    `;
+  }).join('');
 }
 
 function renderMyCourses() {

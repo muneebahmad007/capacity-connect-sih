@@ -1384,4 +1384,109 @@
     transform: rotate(90deg);
     margin: 2px 0 2px 14px;
   }
+  
+}
+/* Skill Gap — Target Achieved */
+  .gap-callout-center.success {
+    color: var(--accent-emerald) !important;
+    border-color: rgba(16, 185, 129, 0.35) !important;
+    background: rgba(16, 185, 129, 0.10) !important;
+    box-shadow: 0 0 18px rgba(16, 185, 129, 0.12);
+  }
+/* =========================================================
+   MY SKILLS — ANIMATED PROFICIENCY BARS
+   ========================================================= */
+
+#mySkillsGrid .skill-progress-track {
+  position: relative;
+  width: 100%;
+  height: 9px;
+  background: rgba(255, 255, 255, 0.07);
+  border-radius: 999px;
+  overflow: hidden;
+  box-shadow:
+    inset 0 1px 3px rgba(0, 0, 0, 0.35);
+}
+
+#mySkillsGrid .skill-progress-bar {
+  position: relative;
+  height: 100%;
+  min-width: 0;
+  border-radius: 999px;
+
+  transition:
+    width 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+
+  background: linear-gradient(
+    90deg,
+    #3b82f6,
+    #60a5fa
+  );
+
+  box-shadow:
+    0 0 10px rgba(59, 130, 246, 0.35);
+}
+
+/* Moving shine effect */
+#mySkillsGrid .skill-progress-bar::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -40%;
+  width: 40%;
+  height: 100%;
+
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.35),
+    transparent
+  );
+
+  animation: skillBarShine 2.2s ease-in-out infinite;
+}
+
+@keyframes skillBarShine {
+  0% {
+    left: -40%;
+  }
+
+  100% {
+    left: 120%;
+  }
+}
+/* Strong / Target Achieved */
+#mySkillsGrid .skill-row-item:has(.badge-strong) .skill-progress-bar {
+  background: linear-gradient(
+    90deg,
+    #10b981,
+    #34d399
+  );
+
+  box-shadow:
+    0 0 12px rgba(16, 185, 129, 0.35);
+}
+
+/* Developing / Needs Improvement */
+#mySkillsGrid .skill-row-item:has(.badge-developing) .skill-progress-bar {
+  background: linear-gradient(
+    90deg,
+    #06b6d4,
+    #38bdf8
+  );
+
+  box-shadow:
+    0 0 12px rgba(6, 182, 212, 0.35);
+}
+
+/* Major Skill Gap */
+#mySkillsGrid .skill-row-item:has(.badge-danger) .skill-progress-bar {
+  background: linear-gradient(
+    90deg,
+    #f43f5e,
+    #fb7185
+  );
+
+  box-shadow:
+    0 0 12px rgba(244, 63, 94, 0.35);
 }
