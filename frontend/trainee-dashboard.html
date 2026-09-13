@@ -23,7 +23,7 @@
   <header class="dash-header">
     <div class="container dash-header-container">
       <!-- Top Left: Branding identical to Landing Page -->
-      <a href="index.html" class="dash-brand" aria-label="CAPACITY CONNECT Home">
+      <a href="trainee-dashboard.html" class="dash-brand" aria-label="CAPACITY CONNECT Home">
         <div class="logo-icon">
           <svg viewBox="0 0 24 24">
             <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
@@ -62,7 +62,7 @@
           <div class="dash-profile-trigger" id="profileTrigger" tabindex="0" role="button" aria-haspopup="true" aria-expanded="false">
             <div class="dash-avatar-circle">MA</div>
             <div class="dash-user-meta">
-              <span class="dash-user-name">Muneeb Ahmad</span>
+              <span class="dash-user-name">Rahul</span>
               <span class="dash-user-role-badge">TRAINEE</span>
             </div>
             <svg class="dash-dropdown-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -80,7 +80,7 @@
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
               Settings
             </div>
-            <a href="login.html" class="dash-dropdown-item logout" role="menuitem">
+            <a href="#" class="dash-dropdown-item logout" role="menuitem" onclick="logoutUser(); return false;">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
               Logout
             </a>
@@ -150,11 +150,11 @@
 
           <!-- Card 3: Average Assessment Score -->
           <div class="metric-card" data-searchable>
-            <div class="metric-icon-wrap metric-icon-cyan">📊</div>
+            <div class="metric-icon-wrap metric-icon-cyan"><svg class="nav-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="M8 11a3 3 0 0 1 5.5-1.5c0 2-2.5 1.5-2.5 3.5"></path><path d="M11 15h.01"></path><path d="m21 21-4.35-4.35"></path></svg></div>
             <div class="metric-info">
               <span class="metric-label">Avg. Assessment Score</span>
               <div class="metric-val-row">
-                <h3 class="metric-number">78%</h3>
+                <h3 class="metric-number" id="averageAssessmentScore">0%</h3>
                 <span class="metric-pill-sub">Proficient</span>
               </div>
             </div>
@@ -162,12 +162,12 @@
 
           <!-- Card 4: Certificates Earned -->
           <div class="metric-card" data-searchable>
-            <div class="metric-icon-wrap metric-icon-purple">🏆</div>
+            <div class="metric-icon-wrap metric-icon-purple"><svg class="nav-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline></svg></div>
             <div class="metric-info">
               <span class="metric-label">Certificates Earned</span>
               <div class="metric-val-row">
-                <h3 class="metric-number">4</h3>
-                <span class="metric-pill-sub">Verified</span>
+                <h3 class="metric-number">0</h3>
+                <span class="metric-pill-sub">No Certificate</span>
               </div>
             </div>
           </div>
@@ -208,14 +208,14 @@
             <p class="dash-section-subtitle">Targeted competency discrepancies mapped against industry standards</p>
           </div>
           <button type="button" class="btn btn-outline btn-sm" onclick="showToast('Comprehensive skill gap report exported.', 'info');">
-            Export Analysis 📊
+            Export Analysis <svg class="nav-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg>
           </button>
         </div>
 
         <div class="gap-analysis-showcase">
           <!-- Explanatory Mission Subtext -->
           <div class="gap-explainer-text">
-            <span style="font-size: 1.2rem;">💡</span>
+            <span style="font-size: 1.2rem;"><svg class="nav-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg></span>
             <span>CAPACITY CONNECT identifies competency gaps and recommends targeted learning opportunities to help trainees improve.</span>
           </div>
 

@@ -1,3 +1,41 @@
+/* --------------------------------------------------------------------------
+   TRAINEE DASHBOARD AUTHENTICATION & ROLE GUARD
+   -------------------------------------------------------------------------- */
+
+(function protectTraineeDashboard() {
+    const authToken = localStorage.getItem("authToken");
+    const userId = localStorage.getItem("userId");
+    const userRole = localStorage.getItem("userRole");
+
+    // No valid login session
+    if (!authToken || !userId || !userRole) {
+        window.location.replace("login.html");
+        return;
+    }
+
+    // Only Trainees are allowed on this dashboard
+    if (userRole.toLowerCase() !== "trainee") {
+        window.location.replace("login.html");
+        return;
+    }
+})();
+
+/* --------------------------------------------------------------------------
+   LOGOUT
+   -------------------------------------------------------------------------- */
+
+function logoutUser() {
+    // Remove all login/session information
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("userId");
+    localStorage.removeItem("userRole");
+    localStorage.removeItem("userName");
+    localStorage.removeItem("userEmail");
+
+    // Redirect to login page
+    window.location.replace("login.html");
+}
+
 /**
  * CAPACITY CONNECT - Trainee Dashboard Interactive Controller
  * Smart India Hackathon Project
@@ -250,6 +288,8 @@ document.addEventListener('DOMContentLoaded', () => {
   initFeedbackForm();
   loadCoursesAndEnrollments();
   loadAssessmentCardFromAPI(11);
+  loadTraineeProfile();
+  loadLatestAssessmentScore();
 });
 
 /* --------------------------------------------------------------------------
@@ -395,7 +435,7 @@ function syncGapCardUI(gap) {
   }
 
   const targetVal = card.querySelector('.gap-endpoint-info.target .gap-endpoint-val');
-  if (targetVal) targetVal.textContent = `${gap.target}% 🎯`;
+  if (targetVal) targetVal.textContent = `${gap.target}% <svg class="nav-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline></svg>`;
 
   const callout = card.querySelector('.gap-callout-center');
   if (callout) {
@@ -1054,6 +1094,79 @@ function handleOpenProfileModal() {
   `;
 
   openModal(`My Professional Profile`, content);
+}
+
+/* --------------------------------------------------------------------------
+   LOAD TRAINEE PROFILE FROM BACKEND
+   -------------------------------------------------------------------------- */
+
+async function loadTraineeProfile() {
+  const userId = localStorage.getItem("userId");
+
+  if (!userId) {
+    console.warn("No userId found. Cannot load trainee profile.");
+    return;
+  }
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/profiles/${userId}`);
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        console.log("No profile found for this trainee yet.");
+        return;
+      }
+
+      throw new Error(`Profile request failed: ${response.status}`);
+    }
+
+    const profileData = await response.json();
+
+    console.log("Trainee profile loaded from backend:", profileData);
+
+    // Update dashboard profile data from database
+    if (profileData.phone !== undefined) {
+      TRAINEE_DATA.profile.phone = profileData.phone || "";
+    }
+
+    if (profileData.qualification !== undefined) {
+      TRAINEE_DATA.profile.qualifications = profileData.qualification || "";
+    }
+
+    if (profileData.work_experience !== undefined) {
+      TRAINEE_DATA.profile.workExperience = profileData.work_experience || "";
+    }
+
+    if (profileData.interests !== undefined) {
+      if (Array.isArray(profileData.interests)) {
+        TRAINEE_DATA.profile.interests = profileData.interests;
+      } else {
+        TRAINEE_DATA.profile.interests = profileData.interests
+          ? profileData.interests
+              .split(",")
+              .map(item => item.trim())
+              .filter(item => item.length > 0)
+          : [];
+      }
+    }
+
+    if (profileData.bio !== undefined) {
+      TRAINEE_DATA.profile.tagline = profileData.bio || "";
+    }
+
+    if (profileData.profile_image !== undefined) {
+      TRAINEE_DATA.profile.profileImage = profileData.profile_image || "";
+    }
+
+    // Keep name from login/user account
+    const storedName = localStorage.getItem("userName");
+    if (storedName) {
+      TRAINEE_DATA.profile.name = storedName;
+    }
+
+  } catch (error) {
+    console.error("Failed to load trainee profile:", error);
+  }
 }
 
 function handleEditProfile() {
@@ -2736,6 +2849,53 @@ function setModalRating(stars) {
    Course & Enrollment API Integration
    -------------------------------------------------------------------------- */
 const API_BASE_URL = "https://capacity-connect-backend-ejbl.onrender.com";
+async function loadLatestAssessmentScore() {
+  const scoreElement = document.getElementById("averageAssessmentScore");
+  const userId = localStorage.getItem("userId");
+
+  if (!scoreElement || !userId) {
+    console.warn("Assessment score element or userId not found.");
+    return;
+  }
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/results`);
+
+    if (!response.ok) {
+      throw new Error(`Results API failed: ${response.status}`);
+    }
+
+    const results = await response.json();
+
+    console.log("All assessment results:", results);
+    console.log("Logged-in user ID:", userId);
+
+    // Find this trainee's latest result
+    const userResults = results
+      .filter(result => String(result.user_id) === String(userId))
+      .sort(
+        (a, b) =>
+          new Date(b.completed_at) - new Date(a.completed_at)
+      );
+
+    console.log("This user's results:", userResults);
+
+    if (userResults.length > 0) {
+      const latestResult = userResults[0];
+      const percentage = Number(latestResult.percentage);
+
+      scoreElement.textContent =
+        Number.isFinite(percentage) ? `${percentage}%` : "0%";
+    } else {
+      scoreElement.textContent = "0%";
+      console.warn("No assessment result found for this user.");
+    }
+
+  } catch (error) {
+    console.error("Failed to load latest assessment score:", error);
+    scoreElement.textContent = "0%";
+  }
+}
 let apiCourses = [];
 let apiEnrollments = [];
 let apiRecommendations = [];
@@ -2987,7 +3147,7 @@ function renderRecommendedCourses() {
             class="btn ${isEnrolled ? 'btn-secondary' : 'btn-primary'} btn-sm"
             style="width: 100%;${isEnrolled ? 'border-color: var(--accent-emerald); color: var(--accent-emerald);' : ''}"
             ${isEnrolled ? 'disabled' : ''}
-            onclick="${isEnrolled ? '' : `handleEnrollCourse(${courseId})`}"
+            onclick="${isEnrolled ? '' : `handleCourseEnroll(${courseId},this)`}"
           >
             ${isEnrolled ? '✓ Enrolled' : 'Enroll Now'}
           </button>

@@ -189,7 +189,7 @@ a{ color: inherit; }
 .search-wrap input{
   width:100%; border-radius:8px; border:1px solid var(--border);
   background: var(--white-03); padding:10px 12px 10px 34px;
-  font-size:12px; color:#fff; outline:none;
+  font-size:12px; color:#ffffff; outline:none;
 }
 .search-wrap input::placeholder{ color: var(--slate-600); }
 .search-wrap input:focus{ border-color: rgba(96,165,250,.4); }
@@ -233,14 +233,14 @@ a{ color: inherit; }
 
 .view-header{ display:flex; flex-direction:column; gap:16px; justify-content:space-between; margin-bottom:28px; }
 @media (min-width:640px){ .view-header{ flex-direction:row; align-items:center; } }
-.h1-sm{ font-size:22px; font-weight:600; letter-spacing:-.01em; color:#fff; }
+.h1-sm{ font-size:22px; font-weight:600; letter-spacing:-.01em; color:#ffffff; }
 .view-header .sub{ margin-top:6px; }
 
 .welcome-row{ display:flex; flex-direction:column; gap:20px; justify-content:space-between; margin-bottom:28px; }
 @media (min-width:640px){ .welcome-row{ flex-direction:row; align-items:flex-end; } }
 .eyebrow{ display:flex; align-items:center; gap:8px; margin-bottom:8px; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.16em; color: var(--blue-400); }
 .eyebrow .dot{ width:6px; height:6px; border-radius:9999px; background: var(--blue-400); }
-.h1{ font-size:26px; font-weight:600; letter-spacing:-.01em; color:#fff; margin:0; }
+.h1{ font-size:26px; font-weight:600; letter-spacing:-.01em; color:#ffffff; margin:0; }
 @media (min-width:640px){ .h1{ font-size:30px; } }
 .wave{ font-size:24px; }
 .sub{ margin-top:8px; font-size:13px; color: var(--slate-500); }

@@ -1,3 +1,42 @@
+
+/* --------------------------------------------------------------------------
+   TRAINEE DASHBOARD AUTHENTICATION & ROLE GUARD
+   -------------------------------------------------------------------------- */
+
+(function protectTraineeDashboard() {
+    const authToken = localStorage.getItem("authToken");
+    const userId = localStorage.getItem("userId");
+    const userRole = localStorage.getItem("userRole");
+
+    // No valid login session
+    if (!authToken || !userId || !userRole) {
+        window.location.replace("login.html");
+        return;
+    }
+
+    // Only Trainees are allowed on this dashboard
+    if (userRole.toLowerCase() !== "trainer") {
+        window.location.replace("login.html");
+        return;
+    }
+})();
+
+/* --------------------------------------------------------------------------
+   LOGOUT
+   -------------------------------------------------------------------------- */
+
+function logoutUser() {
+    // Remove all login/session information
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("userId");
+    localStorage.removeItem("userRole");
+    localStorage.removeItem("userName");
+    localStorage.removeItem("userEmail");
+
+    // Redirect to login page
+    window.location.replace("login.html");
+}
+
 /* =========================================================
    CAPACITY CONNECT — Trainer Dashboard (vanilla JS)
    No build step. No dependencies. Works via file://
@@ -261,6 +300,10 @@
 
       state.dashboardStats = data;
 
+      if (data.trainer_name) {
+        state.profile.name = data.trainer_name;
+      }
+
       console.log(
         "Trainer Dashboard Stats:",
         data
@@ -377,6 +420,153 @@ async function loadTrainerSkills() {
     }
   }
 
+  async function loadTrainerAssessments() {
+    var trainerId = localStorage.getItem("userId");
+
+    if (!trainerId) {
+      console.error("Trainer user ID not found.");
+      state.assessments = [];
+      return;
+    }
+
+    try {
+      var response = await fetch(
+        TRAINER_API_BASE_URL + "/assessments"
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          "Assessments API returned " + response.status
+        );
+      }
+
+      var assessments = await response.json();
+
+      if (!Array.isArray(assessments)) {
+        throw new Error("Invalid assessments response");
+      }
+
+      var trainerAssessments = assessments.filter(function (assessment) {
+        return String(assessment.trainer_id) === String(trainerId);
+      });
+
+      state.assessments = trainerAssessments.map(function (assessment) {
+        var skill = Array.isArray(state.skills)
+          ? state.skills.find(function (s) {
+              return Number(s.id) === Number(assessment.skill_id);
+            })
+          : null;
+
+        return {
+          id: assessment.id,
+          title: assessment.title || "Untitled Assessment",
+          subject: skill ? skill.name : "General",
+          skill_id: assessment.skill_id,
+          trainer_id: assessment.trainer_id,
+          numQuestions: Number(assessment.total_questions || 0),
+          questions: [],
+          time: "20 min",
+          deadline: assessment.deadline || "TBD",
+          completed: "0 / 0",
+          progress: 0,
+          status: "Active",
+          description: assessment.description || ""
+        };
+      });
+
+      console.log(
+        "Trainer Assessments:",
+        state.assessments
+      );
+
+    } catch (error) {
+      console.error(
+        "Failed to load trainer assessments:",
+        error
+      );
+
+      state.assessments = [];
+    }
+  }
+  async function loadTrainerTrainees() {
+    var trainerId = localStorage.getItem("userId");
+
+    if (!trainerId) {
+      console.error("Trainer user ID not found.");
+      state.trainees = [];
+      return;
+    }
+
+    try {
+      var response = await fetch(
+        TRAINER_API_BASE_URL +
+        "/trainer/trainees/" +
+        encodeURIComponent(trainerId)
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          "Trainer trainees API returned " + response.status
+        );
+      }
+
+      var trainees = await response.json();
+
+      if (!Array.isArray(trainees)) {
+        throw new Error("Invalid trainees response");
+      }
+
+      state.trainees = trainees.map(function (trainee) {
+        var score = Number(trainee.average_score || 0);
+
+        var courseName =
+          trainee.enrolled_courses &&
+          trainee.enrolled_courses.length > 0
+            ? trainee.enrolled_courses[0].title
+            : "No course";
+
+        return {
+          id: trainee.trainee_id,
+          name: trainee.name || "Unknown Trainee",
+          initials: (trainee.name || "T")
+            .split(" ")
+            .map(function (part) {
+              return part.charAt(0);
+            })
+            .join("")
+            .substring(0, 2)
+            .toUpperCase(),
+          email: trainee.email || "",
+          course: courseName,
+          score: Math.round(score),
+          status: score >= 80 ? "Strong" : "Needs improvement",
+          progress: Math.round(score),
+          last:
+            trainee.assessment_attempts > 0
+              ? "Assessment completed"
+              : "No assessment yet",
+          tone: score >= 80 ? "success" : "warning",
+          enrolled_courses: trainee.enrolled_courses || [],
+          assessment_attempts: trainee.assessment_attempts || 0,
+          average_score: score,
+          skill_gaps: trainee.skill_gaps || [],
+          competency: trainee.competency || [],
+          enrollment_date: trainee.enrollment_date,
+          trainee_status: trainee.status
+        };
+      });
+
+      console.log("Trainer Trainees:", state.trainees);
+
+    } catch (error) {
+      console.error(
+        "Failed to load trainer trainees:",
+        error
+      );
+
+      state.trainees = [];
+    }
+  }
 
   function statCards() {
     var stats = state.dashboardStats;
@@ -1027,6 +1217,10 @@ async function loadTrainerSkills() {
     Array.prototype.forEach.call(document.querySelectorAll(".profile-name, .footer-profile-name"), function (el) { el.textContent = p.name || ""; });
     Array.prototype.forEach.call(document.querySelectorAll(".profile-role, .footer-profile-role"), function (el) { el.textContent = p.role || ""; });
     Array.prototype.forEach.call(document.querySelectorAll("#profileBtn .avatar, #footerProfileBtn .avatar"), function (el) { el.textContent = initials; });
+    var welcomeName = document.getElementById("welcomeTrainerName");
+    if (welcomeName) {
+      welcomeName.textContent = p.name || "";
+    }
   }
 
   /* ================= SETTINGS ================= */
@@ -1893,8 +2087,8 @@ async function loadTrainerSkills() {
     document.getElementById("markAllRead").addEventListener("click", markAllRead);
     document.getElementById("markAllReadFull").addEventListener("click", markAllRead);
     document.getElementById("logoutBtn").addEventListener("click", function () {
-      closePanels();
-      notify("Logged out (prototype only)");
+      notify("Logged out ");
+      logoutUser();
     });
     document.getElementById("tipInsightsBtn").addEventListener("click", function () { setActive("performance"); });
 
@@ -1965,7 +2159,7 @@ async function loadTrainerSkills() {
     wireProfileForm();
     wireSettingsForm();
 
-    updateHeaderProfile();
+    
     updateNotifBadge();
     renderNotifPanel();
 
@@ -1973,7 +2167,11 @@ async function loadTrainerSkills() {
       loadTrainerDashboardStats(),
       loadTrainerSkills(),
     ]);
+
+    updateHeaderProfile();
     await loadTrainerCourses();
+    await loadTrainerAssessments();
+    await loadTrainerTrainees();
     setActive("dashboard");
   }
   if (document.readyState === "loading") {

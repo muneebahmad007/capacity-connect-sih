@@ -249,10 +249,7 @@
 
   /* ---------------- save ---------------- */
   async function saveProfile() {
-    var userId =
-        localStorage.getItem("registeredUserId") ||
-        localStorage.getItem("userId");
-
+    var userId = localStorage.getItem("userId");
     if (!userId) {
         alert("User ID not found. Please register again.");
         return false;

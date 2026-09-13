@@ -1,3 +1,37 @@
+(function protectTraineeDashboard() {
+    const authToken = localStorage.getItem("authToken");
+    const userId = localStorage.getItem("userId");
+    const userRole = localStorage.getItem("userRole");
+
+    // No valid login session
+    if (!authToken || !userId || !userRole) {
+        window.location.replace("login.html");
+        return;
+    }
+
+    // Only Admins are allowed on this dashboard
+    if (userRole.toLowerCase() !== "admin") {
+        window.location.replace("login.html");
+        return;
+    }
+})();
+
+/* --------------------------------------------------------------------------
+   LOGOUT
+   -------------------------------------------------------------------------- */
+
+function logoutUser() {
+    // Remove all login/session information
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("userId");
+    localStorage.removeItem("userRole");
+    localStorage.removeItem("userName");
+    localStorage.removeItem("userEmail");
+
+    // Redirect to login page
+    window.location.replace("login.html");
+}
+
 /* =========================================================
    CAPACITY CONNECT — Admin Dashboard (Vanilla JavaScript)
    No build step. No dependencies. Works seamlessly via file://
@@ -288,7 +322,7 @@
       state.trainers = trainers.map(function (trainer) {
         return {
           id: trainer.id,
-          name: trainer.Name || trainer.name || "Unknown Trainer",
+          name: trainer.Name || trainer.name || "Unnamed Trainer",
           email: trainer.Email || trainer.email || "",
           role: trainer.role,
           status: trainer.is_approved ? "Active" : "Pending Approval"
@@ -1527,7 +1561,9 @@
     var tbody = document.getElementById("trainersTableBody");
     if (!tbody) return;
 
-    var trainers = state.trainers || [];
+    var trainers = state.users.filter(function (user) {
+      return String(user.role || "").toLowerCase() === "trainer";
+    });
 
     if (trainers.length === 0) {
       tbody.innerHTML =
@@ -1536,13 +1572,23 @@
             'No trainers found in the database.' +
           '</td>' +
         '</tr>';
-
       return;
     }
 
     var html = "";
 
     trainers.forEach(function (trainer) {
+
+      var trainerName = trainer.Name || trainer.name || "Unnamed Trainer";
+
+      var initials = trainerName
+        .split(/\s+/)
+        .map(function (part) {
+          return part.charAt(0);
+        })
+        .join("")
+        .substring(0, 2)
+        .toUpperCase();
 
       var statusClass =
         trainer.status === "Active"
@@ -1555,46 +1601,29 @@
           '<td>' +
             '<div class="user-cell">' +
               '<div class="avatar avatar-sm avatar-grad">' +
-                esc(trainer.initials) +
+                esc(initials) +
               '</div>' +
               '<span class="user-name">' +
-                esc(trainer.name) +
+                esc(trainerName) +
               '</span>' +
             '</div>' +
           '</td>' +
 
           '<td>' +
-            '<span class="badge badge-trainer">' +
-              'Trainer' +
-            '</span>' +
+            '<span class="badge badge-trainer">Trainer</span>' +
           '</td>' +
+
+          '<td>—</td>' +
+          '<td>—</td>' +
 
           '<td>' +
-            '<strong style="color:#fff;">' +
-              trainer.courses +
-            '</strong>' +
+            '<span style="color:var(--slate-500); font-weight:700;">—</span>' +
           '</td>' +
+
+          '<td style="color:var(--slate-400);">—</td>' +
 
           '<td>' +
-            '<strong style="color:#fff;">' +
-              trainer.trainees +
-            '</strong>' +
-          '</td>' +
-
-          '<td>' +
-            '<span style="color:var(--slate-400); font-weight:700;">' +
-              '—' +
-            '</span>' +
-          '</td>' +
-
-          '<td style="color:var(--slate-400);">' +
-            '—' +
-          '</td>' +
-
-          '<td>' +
-            '<span class="badge badge-pending">' +
-              '—' +
-            '</span>' +
+            '<span class="badge badge-pending">—</span>' +
           '</td>' +
 
           '<td>' +
@@ -1689,6 +1718,16 @@
   // 11. Profile View Form
   function renderProfileForm() {
     var p = state.profile;
+    var loggedInName = localStorage.getItem("userName");
+    var loggedInEmail = localStorage.getItem("userEmail");
+
+    if (loggedInName) {
+        p.name = loggedInName;
+    }
+
+    if (loggedInEmail) {
+        p.email = loggedInEmail;
+    }
     var pfName = document.getElementById("pfName");
     var pfEmail = document.getElementById("pfEmail");
     var pfRole = document.getElementById("pfRole");
@@ -2395,6 +2434,21 @@
     }
   }
 
+  function updateAdminDate() {
+    var dateElement = document.getElementById("adminCurrentDate");
+
+    if (!dateElement) return;
+
+    var now = new Date();
+
+    dateElement.textContent = now.toLocaleDateString("en-US", {
+        weekday: "long",
+        month: "long",
+        day: "numeric",
+        year: "numeric"
+    });
+  }
+
   /* ---------------- Init ---------------- */
   async function init() {
     renderCompetencyBars();
@@ -2409,6 +2463,7 @@
     renderParticipationChart();
     renderProfileForm();
     initEventListeners();
+    updateAdminDate();
 
     await loadAdminDashboardStats();
     await loadAdminUsers();

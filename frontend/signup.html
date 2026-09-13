@@ -151,6 +151,7 @@ document.getElementById("signupForm").addEventListener("submit", async function 
     }
 
     // Save signup information for the profile page
+    // Save signup information for the profile page
     localStorage.setItem(
       "capacityConnectSignup",
       JSON.stringify({
@@ -160,6 +161,14 @@ document.getElementById("signupForm").addEventListener("submit", async function 
         domain: domain
       })
     );
+
+    localStorage.setItem("capacityConnectEmail", email);
+
+    // Save the actual user ID returned by the backend
+    if (data.user && data.user.id) {
+      localStorage.setItem("userId", data.user.id);
+      localStorage.setItem("registeredUserId", data.user.id);
+    }
 
     localStorage.setItem("capacityConnectEmail", email);
 
