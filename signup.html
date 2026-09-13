@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Register for CAPACITY CONNECT - Build your professional profile, take competency assessments, and discover skill gaps.">
+  <title>Sign Up | CAPACITY CONNECT</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800;900&display=swap" rel="stylesheet">
+
+  <!-- Core CSS -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="auth-page">
+
+  <div class="auth-card" style="max-width: 520px;">
+    <div class="auth-header">
+      <a href="index.html" class="logo" style="justify-content: center; margin-bottom: 12px;">
+        <div class="logo-icon">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+          </svg>
+        </div>
+        <span>CAPACITY <span class="text-gradient">CONNECT</span></span>
+      </a>
+      <h2>Create Your Account</h2>
+      <p>Join the competency-driven learning revolution</p>
+    </div>
+
+    <!-- Role Selection Tabs -->
+
+    <form id="signupForm">
+      <div class="form-group">
+        <label class="form-label" for="signupName">Full Name</label>
+        <input type="text" id="signupName" class="form-input" placeholder="e.g. Aarav Sharma" required>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="signupEmail">College / Institutional Email</label>
+        <input type="email" id="signupEmail" class="form-input" placeholder="aarav@university.edu.in" required>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="signupDomain">Primary Learning Domain</label>
+        <select class="form-select" id="signupDomain" required>
+          <option value="ai-ml">Artificial Intelligence &amp; Machine Learning</option>
+          <option value="data-science">Data Science &amp; Applied Analytics</option>
+          <option value="fullstack">Full-Stack Software Engineering</option>
+          <option value="cloud-devops">Cloud Infrastructure &amp; DevOps</option>
+          <option value="cybersecurity">Cybersecurity &amp; Network Defense</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="signupPassword">Password</label>
+        <input type="password" id="signupPassword" class="form-input" placeholder="At least 8 characters (alphanumeric)" minlength="8" required>
+      </div>
+
+      <div style="display: flex; align-items: flex-start; gap: 10px; margin-bottom: 24px;">
+        <input type="checkbox" id="termsAgree" required style="margin-top: 4px; accent-color: var(--primary);">
+        <label for="termsAgree" style="font-size: 0.82rem; color: var(--text-secondary); line-height: 1.4; cursor: pointer;">
+          I agree to the <a href="#" style="color: var(--primary-light);">Terms &amp; Conditions</a> and understand my competency data will be used for personalized skill recommendations.
+        </label>
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="width: 100%; margin-bottom: 18px;">
+        Create Profile &amp; Start Assessment &rarr;
+      </button>
+
+      <div style="text-align: center; font-size: 0.88rem; color: var(--text-secondary);">
+        Already have an account? 
+        <a href="login.html" style="color: var(--primary-light); font-weight: 600;">Sign In</a>
+      </div>
+
+      <div style="text-align: center; margin-top: 18px;">
+        <a href="index.html" style="font-size: 0.82rem; color: var(--text-muted);">&larr; Return to Landing Page</a>
+      </div>
+    </form>
+  </div>
+
+  <script src="js/script.js"></script>
+  <script>
+const API_BASE_URL = "https://capacity-connect-backend-ejbl.onrender.com";
+
+document.getElementById("signupForm").addEventListener("submit", async function (e) {
+  e.preventDefault();
+
+  const name = document.getElementById("signupName").value.trim();
+  const email = document.getElementById("signupEmail").value.trim();
+  const domain = document.getElementById("signupDomain").value;
+  const password = document.getElementById("signupPassword").value;
+  const termsAgree = document.getElementById("termsAgree");
+
+  // Basic validation
+  if (!name || !email || !password) {
+    showToast("Please fill in all required fields.", "error");
+    return;
+  }
+
+  if (termsAgree && !termsAgree.checked) {
+    showToast("Please agree to the Terms & Conditions.", "error");
+    return;
+  }
+
+  const submitButton = this.querySelector('button[type="submit"]');
+
+  if (submitButton) {
+    submitButton.disabled = true;
+    submitButton.textContent = "Creating Account...";
+  }
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/register`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        name: name,
+        email: email,
+        password: password,
+        role: "trainee"
+      })
+    });
+
+    let data = {};
+
+    try {
+      data = await response.json();
+    } catch (_) {
+      data = {};
+    }
+
+    if (!response.ok) {
+      let errorMessage =
+        data.detail ||
+        data.message ||
+        "Registration failed. Please try again.";
+
+      // FastAPI validation errors
+      if (Array.isArray(errorMessage)) {
+        errorMessage = errorMessage
+          .map(error => error.msg || "Invalid input")
+          .join(", ");
+      }
+
+      throw new Error(errorMessage);
+    }
+
+    // Save signup information for the profile page
+    // Save signup information for the profile page
+    localStorage.setItem(
+      "capacityConnectSignup",
+      JSON.stringify({
+        name: name,
+        email: email,
+        role: "trainee",
+        domain: domain
+      })
+    );
+
+    localStorage.setItem("capacityConnectEmail", email);
+
+    // Save the actual user ID returned by the backend
+    if (data.user && data.user.id) {
+      localStorage.setItem("userId", data.user.id);
+      localStorage.setItem("registeredUserId", data.user.id);
+    }
+
+    localStorage.setItem("capacityConnectEmail", email);
+
+    showToast(
+      "Registration successful! Please complete your profile.",
+      "success"
+    );
+
+    // Go to profile creation
+    setTimeout(() => {
+      window.location.href = "create-profile.html";
+    }, 1200);
+
+  } catch (error) {
+    console.error("Registration error:", error);
+
+    showToast(
+      error.message || "Registration failed. Please try again.",
+      "error"
+    );
+
+  } finally {
+    if (submitButton) {
+      submitButton.disabled = false;
+      submitButton.textContent = "Create Profile & Start Assessment →";
+    }
+  }
+});
+</script>
+</body>
+</html>

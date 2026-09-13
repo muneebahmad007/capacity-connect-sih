@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Login to CAPACITY CONNECT - Competency-driven learning & training platform for Smart India Hackathon.">
+  <title>Login | CAPACITY CONNECT</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800;900&display=swap" rel="stylesheet">
+
+  <!-- Core CSS -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="auth-page">
+
+  <div class="auth-card">
+    <div class="auth-header">
+      <a href="index.html" class="logo" style="justify-content: center; margin-bottom: 12px;">
+        <div class="logo-icon">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+          </svg>
+        </div>
+        <span>CAPACITY <span class="text-gradient">CONNECT</span></span>
+      </a>
+      <h2>Welcome Back</h2>
+      <p>Log in to access your competency dashboard</p>
+    </div>
+
+    <!-- Role Selection Tabs -->
+    <div class="auth-role-tabs" id="roleTabs">
+      <button type="button" class="role-tab-btn active" data-role="trainee">Trainee</button>
+      <button type="button" class="role-tab-btn" data-role="trainer">Trainer</button>
+      <button type="button" class="role-tab-btn" data-role="admin">Admin</button>
+    </div>
+
+    <!-- Hackathon Quick Demo Autofill -->
+    <div class="demo-login-box">
+      <div class="demo-login-text">
+        <span>SIH Judge Demo: </span>
+        <strong id="demoRoleLabel">Trainee Demo</strong>
+      </div>
+      <button type="button" class="btn btn-outline btn-sm" id="btnAutoFill" style="padding: 4px 10px; font-size: 0.75rem;">
+        Autofill
+      </button>
+    </div>
+
+    <form id="loginForm">
+      <div class="form-group">
+        <label class="form-label" for="loginEmail">Email Address</label>
+        <input type="email" id="loginEmail" class="form-input" placeholder="trainee@capacityconnect.in" required>
+      </div>
+
+      <div class="form-group">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <label class="form-label" for="loginPassword" style="margin-bottom: 0;">Password</label>
+          <a href="#" style="font-size: 0.78rem; color: var(--primary-light);" onclick="alert('Password reset link has been dispatched to your email.'); return false;">Forgot password?</a>
+        </div>
+        <input type="password" id="loginPassword" class="form-input" placeholder="••••••••" required>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 24px;">
+        <input type="checkbox" id="rememberMe" checked style="accent-color: var(--primary);">
+        <label for="rememberMe" style="font-size: 0.85rem; color: var(--text-secondary); cursor: pointer;">Remember this device for 30 days</label>
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="width: 100%; margin-bottom: 18px;">
+        Sign In to Platform &rarr;
+      </button>
+
+      <div style="text-align: center; font-size: 0.88rem; color: var(--text-secondary);">
+        Don't have an account yet? 
+        <a href="signup.html" style="color: var(--primary-light); font-weight: 600;">Sign Up</a>
+      </div>
+
+      <div style="text-align: center; margin-top: 18px;">
+        <a href="index.html" style="font-size: 0.82rem; color: var(--text-muted);">&larr; Return to Landing Page</a>
+      </div>
+    </form>
+  </div>
+
+  <script src="js/script.js"></script>
+  <script>
+    const API_BASE_URL = "https://capacity-connect-backend-ejbl.onrender.com";
+    // Role tabs logic
+    const roleTabs = document.querySelectorAll('.role-tab-btn');
+    const demoLabel = document.getElementById('demoRoleLabel');
+    const emailInput = document.getElementById('loginEmail');
+    const passInput = document.getElementById('loginPassword');
+    const autoFillBtn = document.getElementById('btnAutoFill');
+    let currentRole = 'trainee';
+
+    const credentials = {
+      trainee: { email: 'student.aarav@capacityconnect.in', pass: 'Trainee#2026' },
+      trainer: { email: 'dr.rajesh@capacityconnect.in', pass: 'Trainer#2026' },
+      admin: { email: 'admin@gmail.com', pass: 'admin1' }
+    };
+
+    roleTabs.forEach(btn => {
+      btn.addEventListener('click', () => {
+        roleTabs.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentRole = btn.dataset.role;
+        demoLabel.textContent = currentRole.charAt(0).toUpperCase() + currentRole.slice(1) + ' Demo';
+        emailInput.placeholder = credentials[currentRole].email;
+      });
+    });
+
+    autoFillBtn.addEventListener('click', () => {
+      emailInput.value = credentials[currentRole].email;
+      passInput.value = credentials[currentRole].pass;
+      showToast(`Autofilled demo credentials for ${currentRole.toUpperCase()}`, 'success');
+    });
+
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  const email = emailInput.value.trim();
+  const password = passInput.value;
+
+  if (!email || !password) {
+    showToast('Please enter your email and password.', 'error');
+    return;
+  }
+
+  const submitBtn = document.querySelector('#loginForm button[type="submit"]');
+  const originalText = submitBtn.innerHTML;
+
+  submitBtn.disabled = true;
+  submitBtn.innerHTML = 'Signing In...';
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        email: email,
+        password: password
+      })
+    });
+
+    const data = await response.json();
+
+    if (response.status === 403) {
+      alert("Your account is pending admin approval.");
+      return;
+    }
+
+    if (!response.ok) {
+      alert(data.detail || "Login failed");
+      return;
+    }
+
+    // Backend has authenticated the user
+    const user = data.user;
+    const role = String(user.role || '').trim().toLowerCase();
+
+    localStorage.setItem('authToken', data.access_token);
+    localStorage.setItem('userId', user.id);
+    localStorage.setItem('userRole', role);
+    localStorage.setItem('userName', user.Name);
+    localStorage.setItem('userEmail', user.Email);
+
+    if (role === 'trainee') {
+        window.location.href = 'dashboard.html';
+    } else if (role === 'trainer') {
+        window.location.href = 'trainer-dashboard.html';
+    } else if (role === 'admin') {
+        window.location.href = 'admin-dashboard.html';
+    } else {
+        console.error('Unexpected role:', user.role);
+        showToast(`Unknown user role: ${user.role}`, 'error');
+    }
+
+  } catch (error) {
+
+    console.error('Login error:', error);
+
+    showToast(error.message || 'Unable to connect to the server.', 'error');
+
+  } finally {
+
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = originalText;
+
+  }
+});
+  </script>
+</body>
+</html>

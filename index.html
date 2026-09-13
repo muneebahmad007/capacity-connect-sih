@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="CAPACITY CONNECT - Competency-driven digital learning and training platform for Smart India Hackathon. Learn. Build Skills. Connect Better.">
+  <title>CAPACITY CONNECT | Learn. Build Skills. Connect Better.</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800;900&display=swap" rel="stylesheet">
+
+  <!-- Core CSS -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- =========================================================================
+       1. STICKY TOP NAVIGATION BAR
+       ========================================================================= -->
+  <header class="navbar" id="navbar">
+    <div class="container nav-container">
+      <!-- Logo -->
+      <a href="#hero" class="logo" aria-label="CAPACITY CONNECT Homepage">
+        <div class="logo-icon">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+          </svg>
+        </div>
+        <span>CAPACITY <span class="text-gradient">CONNECT</span></span>
+      </a>
+
+      <!-- Center / Right Navigation Links -->
+      <nav>
+        <ul class="nav-menu" id="navMenu">
+          <li><a href="#hero" class="nav-link active">Home</a></li>
+          <li><a href="#who-can-use" class="nav-link">Who Can Use</a></li>
+          <li><a href="#features" class="nav-link">Features</a></li>
+          <li><a href="#how-it-works" class="nav-link">How It Works</a></li>
+          <li><a href="#about" class="nav-link">About</a></li>
+          <li><a href="#resources" class="nav-link">Resources</a></li>
+        </ul>
+      </nav>
+
+      <!-- Action Buttons -->
+      <div class="nav-actions">
+        <a href="login.html" class="nav-login">Login</a>
+        <a href="signup.html" class="btn btn-primary btn-sm">Sign Up</a>
+        <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation menu">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 6h16M4 12h16M4 18h16"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- =========================================================================
+       2. HERO / FIRST SCREEN (with Interactive 3D Student Dashboard)
+       ========================================================================= -->
+  <section class="hero-section" id="hero">
+    <div class="container hero-grid">
+      <!-- Left Hero Column -->
+      <div class="hero-content reveal">
+        <div class="hero-badge">
+          <span class="section-tag-dot"></span>
+          <span>SMART LEARNING • COMPETENCY • GROWTH</span>
+        </div>
+        
+        <h1 class="hero-title">
+          Learn. <span class="text-gradient">Build Skills.</span> Connect Better.
+        </h1>
+        
+        <p class="hero-desc">
+          CAPACITY CONNECT is a competency-driven learning platform that helps trainees discover their strengths, identify skill gaps, access relevant learning resources, and connect with the right trainers for their learning journey.
+        </p>
+
+        <div class="hero-actions">
+          <a href="signup.html" class="btn btn-primary btn-lg">Get Started &rarr;</a>
+          <a href="login.html" class="btn btn-secondary btn-lg">Login</a>
+        </div>
+
+        <div class="hero-features-subtext">
+          <span>Personalized Learning</span>
+          <span class="hero-subtext-dot">&bull;</span>
+          <span>Competency Mapping</span>
+          <span class="hero-subtext-dot">&bull;</span>
+          <span>Smart Recommendations</span>
+        </div>
+      </div>
+
+      <!-- Right Column: Interactive 3D Dashboard -->
+      <div class="hero-visual" id="heroVisualContainer">
+        <div class="dashboard-3d-wrapper" id="dashboard3DWrapper">
+          
+          <!-- Floating Micro Card 1: Skill Gap Detected -->
+          <div class="floating-card floating-card-1">
+            <div class="floating-card-content">
+              <div class="floating-icon gap">&#9888;</div>
+              <div class="floating-text">
+                <h6>Skill Gap Detected</h6>
+                <p>Machine Learning</p>
+                <span class="badge-gap">45% gap</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Main Dashboard Mockup Card -->
+          <div class="dashboard-main-card">
+            <div class="dashboard-header">
+              <div class="dashboard-user">
+                <div class="user-avatar">CC</div>
+                <div class="user-info">
+                  <h4>Welcome Back &#128075;</h4>
+                  <p>Trainee Portal &bull; SIH-2026</p>
+                </div>
+              </div>
+              <span class="live-badge">&bull; Live Sync</span>
+            </div>
+
+            <!-- Overall Progress Bar Banner -->
+            <div class="dashboard-progress-banner">
+              <div class="progress-banner-text">
+                <h5>Overall Competency Progress</h5>
+                <div class="progress-val">72%</div>
+              </div>
+              <div class="progress-circle-mini">
+                <svg viewBox="0 0 36 36" style="width: 50px; height: 50px; transform: rotate(-90deg);">
+                  <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="3.5" />
+                  <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="url(#dashGrad)" stroke-width="3.5" stroke-dasharray="72, 100" stroke-linecap="round" />
+                  <defs>
+                    <linearGradient id="dashGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#3b82f6" />
+                      <stop offset="100%" stop-color="#8b5cf6" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+              </div>
+            </div>
+
+            <!-- Dynamic Competencies -->
+            <div class="dashboard-competencies">
+              <div class="comp-item">
+                <div class="comp-meta">
+                  <span class="comp-name">Python</span>
+                  <span>85%</span>
+                </div>
+                <div class="comp-bar-bg">
+                  <div class="comp-bar-fill python"></div>
+                </div>
+              </div>
+
+              <div class="comp-item">
+                <div class="comp-meta">
+                  <span class="comp-name">SQL</span>
+                  <span>65%</span>
+                </div>
+                <div class="comp-bar-bg">
+                  <div class="comp-bar-fill sql"></div>
+                </div>
+              </div>
+
+              <div class="comp-item">
+                <div class="comp-meta">
+                  <span class="comp-name">Statistics</span>
+                  <span>42%</span>
+                </div>
+                <div class="comp-bar-bg">
+                  <div class="comp-bar-fill statistics"></div>
+                </div>
+              </div>
+
+              <div class="comp-item">
+                <div class="comp-meta">
+                  <span class="comp-name">AI / ML</span>
+                  <span>35%</span>
+                </div>
+                <div class="comp-bar-bg">
+                  <div class="comp-bar-fill aiml"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Floating Micro Card 2: Recommended Course -->
+          <div class="floating-card floating-card-2">
+            <div class="floating-card-content">
+              <div class="floating-icon course">📚</div>
+              <div class="floating-text">
+                <h6>Recommended Course</h6>
+                <p>Machine Learning Fundamentals</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Floating Micro Card 3: Trainer Match -->
+          <div class="floating-card floating-card-3">
+            <div class="floating-card-content">
+              <div class="floating-icon trainer">&#9733;</div>
+              <div class="floating-text">
+                <h6>Trainer Match</h6>
+                <p style="color: var(--accent-emerald);">94% Affinity</p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       3. WHO CAN USE CAPACITY CONNECT?
+       ========================================================================= -->
+  <section class="section" id="who-can-use">
+    <div class="container">
+      <div class="section-header reveal">
+        <div class="section-tag">
+          <span class="section-tag-dot"></span>
+          <span>Target Audience</span>
+        </div>
+        <h2 class="section-title">Who Can Use <span class="text-gradient">CAPACITY CONNECT?</span></h2>
+        <p class="section-desc">One platform designed for every part of the learning ecosystem.</p>
+      </div>
+
+      <div class="roles-grid">
+        <!-- Card 1: Trainees -->
+        <div class="role-card tilt-element reveal">
+          <div class="role-icon-box">&#127891;</div>
+          <h3 class="role-title">Trainees</h3>
+          <p class="role-desc">
+            Build your professional profile, enroll in courses, access learning resources, take assessments, discover skill gaps, receive personalized recommendations, and track your growth.
+          </p>
+          <a href="signup.html" class="btn btn-outline role-btn">Explore Trainee Features &rarr;</a>
+        </div>
+
+        <!-- Card 2: Trainers -->
+        <div class="role-card tilt-element reveal">
+          <div class="role-icon-box">&#128104;&#8205;&#127979;</div>
+          <h3 class="role-title">Trainers</h3>
+          <p class="role-desc">
+            Create courses, upload learning resources, design assessments, monitor trainee participation and performance, and share your expertise with learners.
+          </p>
+          <a href="signup.html" class="btn btn-outline role-btn">Explore Trainer Features &rarr;</a>
+        </div>
+
+        <!-- Card 3: Administrators -->
+        <div class="role-card tilt-element reveal">
+          <div class="role-icon-box">&#128202;</div>
+          <h3 class="role-title">Administrators</h3>
+          <p class="role-desc">
+            Manage users, courses, trainers, assessments, certifications, announcements and platform-wide learning analytics from a centralized dashboard.
+          </p>
+          <a href="signup.html" class="btn btn-outline role-btn">Explore Admin Features &rarr;</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       4. FEATURES INTRODUCTION
+       ========================================================================= -->
+  <section class="section" id="features">
+    <div class="container">
+      <div class="section-header reveal">
+        <div class="section-tag">
+          <span class="section-tag-dot"></span>
+          <span>Core Capabilities</span>
+        </div>
+        <h2 class="section-title">Everything You Need to <span class="text-gradient">Learn, Improve and Grow.</span></h2>
+        <p class="section-desc">
+          CAPACITY CONNECT brings learning, assessment, competency tracking and trainer discovery together in one connected platform.
+        </p>
+      </div>
+
+      <!-- Features Quick Navigation Grid -->
+      <div class="features-nav-grid reveal">
+        <a href="#mcq-assessments" class="feature-nav-card">
+          <div class="feature-nav-icon">&#9997;</div>
+          <div class="feature-nav-text">
+            <h5>MCQ Assessments</h5>
+            <p>Interactive evaluations</p>
+          </div>
+        </a>
+
+        <a href="#competency-mapping" class="feature-nav-card">
+          <div class="feature-nav-icon">&#128200;</div>
+          <div class="feature-nav-text">
+            <h5>Competency Mapping</h5>
+            <p>Multi-domain tracking</p>
+          </div>
+        </a>
+
+        <a href="#skill-gap" class="feature-nav-card">
+          <div class="feature-nav-icon">&#9889;</div>
+          <div class="feature-nav-text">
+            <h5>Skill-Gap Analysis</h5>
+            <p>Targeted discrepancy</p>
+          </div>
+        </a>
+
+        <a href="#trainer-recommendation" class="feature-nav-card">
+          <div class="feature-nav-icon">&#129309;</div>
+          <div class="feature-nav-text">
+            <h5>Trainer Matching</h5>
+            <p>94% Match Affinity</p>
+          </div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       5. MCQ ASSESSMENTS (Dedicated Section)
+       ========================================================================= -->
+  <section class="section" id="mcq-assessments">
+    <div class="container">
+      <div class="section-header reveal">
+        <div class="section-tag">
+          <span class="section-tag-dot"></span>
+          <span>Adaptive Testing</span>
+        </div>
+        <h2 class="section-title">Test What You <span class="text-gradient">Know.</span></h2>
+        <p class="section-desc">
+          Take subject-wise MCQ assessments designed to measure your understanding and provide meaningful insights into your competency.
+        </p>
+      </div>
+
+      <div class="mcq-layout reveal" id="mcqWidgetContainer">
+        <!-- Left: Interactive Assessment Card -->
+        <div class="mcq-card">
+          <div class="mcq-header">
+            <span class="mcq-subject-tag">
+              <span class="section-tag-dot"></span>
+              Python Assessment
+            </span>
+            <span class="mcq-question-counter" id="mcqQuestionNumber">Question 5 of 20</span>
+          </div>
+
+          <h3 class="mcq-question-text" id="mcqQuestionText">
+            Which keyword is used to define a function in Python?
+          </h3>
+
+          <div class="mcq-options-list" id="mcqOptionsList">
+            <!-- Rendered dynamically by script.js with interactive feedback -->
+          </div>
+
+          <div class="mcq-controls">
+            <button class="btn btn-secondary btn-sm" id="mcqPrevBtn">&larr; Previous</button>
+            <button class="btn btn-primary btn-sm" id="mcqNextBtn">Next &rarr;</button>
+          </div>
+        </div>
+
+        <!-- Right: Real-Time Assessment Progress Side Panel -->
+        <div class="mcq-side-panel">
+          <div class="mcq-stats-card">
+            <h4 class="stats-card-title">Assessment Metrics</h4>
+            
+            <div class="mcq-meter-wrapper">
+              <div class="meter-labels">
+                <span>Assessment Progress</span>
+                <span id="mcqProgressText">60%</span>
+              </div>
+              <div class="meter-bar">
+                <div class="meter-fill" id="mcqProgressBar" style="width: 60%;"></div>
+              </div>
+            </div>
+
+            <div class="score-display-box">
+              <div>
+                <p style="font-size: 0.85rem; color: var(--text-secondary);">Current Score</p>
+                <h3 class="score-display-val" id="mcqScoreVal">16 / 20</h3>
+              </div>
+              <span class="live-badge">&bull; Accuracy 80%</span>
+            </div>
+          </div>
+
+          <div class="mcq-stats-card" style="background: rgba(59, 130, 246, 0.05);">
+            <h5 style="font-size: 0.95rem; margin-bottom: 8px; color: #fff;">Smart Adaptive Engine</h5>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5;">
+              Questions adjust dynamically based on candidate performance to accurately uncover baseline competency.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       6. COMPETENCY MAPPING (Dedicated Section)
+       ========================================================================= -->
+  <section class="section" id="competency-mapping">
+    <div class="container">
+      <div class="section-header reveal">
+        <div class="section-tag">
+          <span class="section-tag-dot"></span>
+          <span>Real-Time Analytics</span>
+        </div>
+        <h2 class="section-title">Understand Your <span class="text-gradient">Competencies.</span></h2>
+        <p class="section-desc">
+          CAPACITY CONNECT analyzes assessment results, learning activity and skill information to build a clear picture of your current competency levels.
+        </p>
+      </div>
+
+      <div class="competency-grid reveal">
+        <!-- Competency Breakdown Card -->
+        <div class="competency-list-card">
+          <h3 style="font-size: 1.3rem; margin-bottom: 24px;">Current Competency Index</h3>
+
+          <div class="competency-item-detailed">
+            <div class="comp-header-row">
+              <strong>Python Programming</strong>
+              <span class="comp-badge badge-strong">Strong &bull; 85%</span>
+            </div>
+            <div class="comp-bar-bg" style="height: 9px;">
+              <div class="comp-bar-fill python" style="width: 85%;"></div>
+            </div>
+          </div>
+
+          <div class="competency-item-detailed">
+            <div class="comp-header-row">
+              <strong>SQL & Database Querying</strong>
+              <span class="comp-badge badge-developing">Developing &bull; 65%</span>
+            </div>
+            <div class="comp-bar-bg" style="height: 9px;">
+              <div class="comp-bar-fill sql" style="width: 65%;"></div>
+            </div>
+          </div>
+
+          <div class="competency-item-detailed">
+            <div class="comp-header-row">
+              <strong>Applied Statistics</strong>
+              <span class="comp-badge badge-warning">Needs Improvement &bull; 42%</span>
+            </div>
+            <div class="comp-bar-bg" style="height: 9px;">
+              <div class="comp-bar-fill statistics" style="width: 42%;"></div>
+            </div>
+          </div>
+
+          <div class="competency-item-detailed">
+            <div class="comp-header-row">
+              <strong>Machine Learning & AI</strong>
+              <span class="comp-badge badge-danger">Needs Improvement &bull; 35%</span>
+            </div>
+            <div class="comp-bar-bg" style="height: 9px;">
+              <div class="comp-bar-fill aiml" style="width: 35%;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Visual Radar Mockup Card -->
+        <div class="competency-visual-card">
+          <div class="radar-chart-mock">
+            <!-- SVG Spider/Radar Chart Representation -->
+            <svg viewBox="0 0 200 200" style="width: 100%; max-width: 260px; margin: 0 auto;">
+              <!-- Web Polygons -->
+              <polygon points="100,20 180,100 100,180 20,100" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+              <polygon points="100,45 155,100 100,155 45,100" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+              <polygon points="100,70 130,100 100,130 70,100" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+              <!-- Axis lines -->
+              <line x1="100" y1="20" x2="100" y2="180" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+              <line x1="20" y1="100" x2="180" y2="100" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+              <!-- Active Shape -->
+              <polygon points="100,32 152,100 100,146 54,100" fill="rgba(59, 130, 246, 0.35)" stroke="#3b82f6" stroke-width="2"/>
+              <circle cx="100" cy="32" r="4" fill="#60a5fa" />
+              <circle cx="152" cy="100" r="4" fill="#06b6d4" />
+              <circle cx="100" cy="146" r="4" fill="#f59e0b" />
+              <circle cx="54" cy="100" r="4" fill="#f43f5e" />
+            </svg>
+          </div>
+          <h4 style="font-size: 1.1rem; margin-bottom: 6px;">Holistic Competency Radar</h4>
+          <p style="font-size: 0.88rem; color: var(--text-secondary);">
+            Dynamic multi-dimensional mapping comparing practical code benchmarks against industry target baselines.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       7. SKILL-GAP ANALYSIS (Dedicated Flagship Section)
+       ========================================================================= -->
+  <section class="section" id="skill-gap">
+    <div class="container">
+      <div class="section-header reveal">
+        <div class="section-tag">
+          <span class="section-tag-dot"></span>
+          <span>Gap Identification</span>
+        </div>
+        <h2 class="section-title">Know Exactly What You <span class="text-gradient">Need to Improve.</span></h2>
+        <p class="section-desc">
+          Compare your current competency with the required competency and identify the areas where you need to improve.
+        </p>
+      </div>
+
+      <div class="skillgap-wrapper reveal">
+        <div class="gap-matrix-grid">
+          <!-- Comparison Table Matrix -->
+          <div class="gap-comparison-table">
+            <div style="display: grid; grid-template-columns: 1.2fr 1fr 1fr 40px; padding: 0 20px; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+              <span>Competency</span>
+              <span>Current</span>
+              <span>Required</span>
+              <span style="text-align: center;">Status</span>
+            </div>
+
+            <!-- Row 1: Python -->
+            <div class="gap-row gap-row-success">
+              <strong>Python</strong>
+              <span style="color: var(--accent-emerald); font-weight: 700;">85%</span>
+              <span style="color: var(--text-secondary);">80%</span>
+              <div class="gap-status-icon status-ok">&#10003;</div>
+            </div>
+
+            <!-- Row 2: SQL -->
+            <div class="gap-row gap-row-warning">
+              <strong>SQL</strong>
+              <span style="color: var(--accent-cyan); font-weight: 700;">65%</span>
+              <span style="color: var(--text-secondary);">80%</span>
+              <div class="gap-status-icon status-warn">&#9888;</div>
+            </div>
+
+            <!-- Row 3: Statistics -->
+            <div class="gap-row gap-row-warning">
+              <strong>Statistics</strong>
+              <span style="color: var(--accent-amber); font-weight: 700;">42%</span>
+              <span style="color: var(--text-secondary);">75%</span>
+              <div class="gap-status-icon status-warn">&#9888;</div>
+            </div>
+
+            <!-- Row 4: Machine Learning (Critical Gap) -->
+            <div class="gap-row gap-row-danger">
+              <strong>Machine Learning</strong>
+              <span style="color: var(--accent-rose); font-weight: 700;">35%</span>
+              <span style="color: var(--text-secondary);">80%</span>
+              <div class="gap-status-icon status-alert">&#33;</div>
+            </div>
+          </div>
+
+          <!-- Highlight Card: Biggest Skill Gap -->
+          <div class="biggest-gap-card">
+            <div class="gap-pill-alert">
+              <span>&#9888; Critical Action Item</span>
+            </div>
+            <h4 style="font-size: 0.9rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em;">
+              Biggest Skill Gap
+            </h4>
+            <h3 class="gap-target-skill">Machine Learning</h3>
+
+            <div class="gap-metrics-box">
+              <div class="gap-metric-item">
+                <span>Current</span>
+                <strong>35%</strong>
+              </div>
+              <div class="gap-metric-item">
+                <span>Required</span>
+                <strong>80%</strong>
+              </div>
+              <div class="gap-metric-item">
+                <span>Gap</span>
+                <strong class="highlight-gap">45%</strong>
+              </div>
+            </div>
+
+            <a href="#course-recommendation" class="btn btn-primary" style="width: 100%;">
+              View Skill Analysis &rarr;
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       8. COURSE RECOMMENDATION (Dedicated Section)
+       ========================================================================= -->
+  <section class="section" id="course-recommendation">
+    <div class="container">
+      <div class="section-header reveal">
+        <div class="section-tag">
+          <span class="section-tag-dot"></span>
+          <span>Curated Learning</span>
+        </div>
+        <h2 class="section-title">Learn What You Need, <span class="text-gradient">When You Need It.</span></h2>
+        <p class="section-desc">
+          Based on your competency levels and skill gaps, CAPACITY CONNECT recommends relevant courses and learning resources to help you improve.
+        </p>
+      </div>
+
+      <div class="cards-grid-3 reveal">
+        <!-- Course 1 -->
+        <div class="course-card tilt-element">
+          <div>
+            <div class="course-recommendation-tag">
+              <span>&#9733;</span> RECOMMENDED FOR YOU
+            </div>
+            <h3 class="course-title">Machine Learning Fundamentals</h3>
+            <div class="course-meta">
+              <span class="course-meta-item"> Level: Intermediate</span>
+              <span class="course-meta-item">&#9201; Duration: 12 Hours</span>
+            </div>
+            <p class="course-reason">
+              "Recommended based on your Machine Learning skill gap (45% gap detected)."
+            </p>
+          </div>
+          <a href="signup.html" class="btn btn-primary btn-sm" style="width: 100%;">View Course</a>
+        </div>
+
+        <!-- Course 2 -->
+        <div class="course-card tilt-element">
+          <div>
+            <div class="course-recommendation-tag">
+              <span>&#9733;</span> RECOMMENDED FOR YOU
+            </div>
+            <h3 class="course-title">Statistics for Data Science</h3>
+            <div class="course-meta">
+              <span class="course-meta-item"> Level: Beginner</span>
+              <span class="course-meta-item">&#9201; Duration: 8 Hours</span>
+            </div>
+            <p class="course-reason">
+              "Recommended based on your Statistics skill gap (33% gap detected)."
+            </p>
+          </div>
+          <a href="signup.html" class="btn btn-primary btn-sm" style="width: 100%;">View Course</a>
+        </div>
+
+        <!-- Course 3 -->
+        <div class="course-card tilt-element">
+          <div>
+            <div class="course-recommendation-tag">
+              <span>&#9733;</span> RECOMMENDED FOR YOU
+            </div>
+            <h3 class="course-title">Advanced SQL & Optimization</h3>
+            <div class="course-meta">
+              <span class="course-meta-item"> Level: Intermediate</span>
+              <span class="course-meta-item">&#9201; Duration: 6 Hours</span>
+            </div>
+            <p class="course-reason">
+              "Recommended based on your SQL indexing and database query gap."
+            </p>
+          </div>
+          <a href="signup.html" class="btn btn-primary btn-sm" style="width: 100%;">View Course</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       9. TRAINER RECOMMENDATION (Dedicated Section)
+       ========================================================================= -->
+  <section class="section" id="trainer-recommendation">
+    <div class="container">
+      <div class="section-header reveal">
+        <div class="section-tag">
+          <span class="section-tag-dot"></span>
+          <span>Mentorship Network</span>
+        </div>
+        <h2 class="section-title">Connect With the <span class="text-gradient">Right Trainer.</span></h2>
+        <p class="section-desc">
+          Find trainers whose expertise matches your learning needs and competency gaps.
+        </p>
+      </div>
+
+      <div class="cards-grid-3 reveal">
+        <!-- Trainer 1 -->
+        <div class="trainer-card tilt-element">
+          <div class="trainer-avatar-wrap">
+            <div class="trainer-avatar">RS</div>
+            <!-- Circular SVG Match Indicator -->
+            <svg class="match-ring-svg" viewBox="0 0 100 100">
+              <circle class="match-ring-circle-bg" cx="50" cy="50" r="45" />
+              <circle class="match-ring-circle-val" cx="50" cy="50" r="45" />
+            </svg>
+            <div class="match-score-badge">94% Match</div>
+          </div>
+
+          <h3 class="trainer-name">Dr. Rajesh Sharma</h3>
+          <p class="trainer-role">Machine Learning Expert</p>
+
+          <div class="trainer-skills-tags">
+            <span class="skill-pill">Machine Learning</span>
+            <span class="skill-pill">Python</span>
+            <span class="skill-pill">Statistics</span>
+          </div>
+
+          <a href="signup.html" class="btn btn-outline btn-sm" style="width: 100%;">View Trainer Profile</a>
+        </div>
+
+        <!-- Trainer 2 -->
+        <div class="trainer-card tilt-element">
+          <div class="trainer-avatar-wrap">
+            <div class="trainer-avatar" style="background: linear-gradient(135deg, #06b6d4, #3b82f6);">AC</div>
+            <svg class="match-ring-svg" viewBox="0 0 100 100">
+              <circle class="match-ring-circle-bg" cx="50" cy="50" r="45" />
+              <circle class="match-ring-circle-val" cx="50" cy="50" r="45" style="stroke-dashoffset: 34;" />
+            </svg>
+            <div class="match-score-badge">88% Match</div>
+          </div>
+
+          <h3 class="trainer-name">Ananya Chopra</h3>
+          <p class="trainer-role">Data Engineering Specialist</p>
+
+          <div class="trainer-skills-tags">
+            <span class="skill-pill">SQL Optimization</span>
+            <span class="skill-pill">Data Pipelines</span>
+            <span class="skill-pill">Python</span>
+          </div>
+
+          <a href="signup.html" class="btn btn-outline btn-sm" style="width: 100%;">View Trainer Profile</a>
+        </div>
+
+        <!-- Trainer 3 -->
+        <div class="trainer-card tilt-element">
+          <div class="trainer-avatar-wrap">
+            <div class="trainer-avatar" style="background: linear-gradient(135deg, #8b5cf6, #ec4899);">VK</div>
+            <svg class="match-ring-svg" viewBox="0 0 100 100">
+              <circle class="match-ring-circle-bg" cx="50" cy="50" r="45" />
+              <circle class="match-ring-circle-val" cx="50" cy="50" r="45" style="stroke-dashoffset: 45;" />
+            </svg>
+            <div class="match-score-badge">85% Match</div>
+          </div>
+
+          <h3 class="trainer-name">Vikram Kulkarni</h3>
+          <p class="trainer-role">Statistical Modeling Lead</p>
+
+          <div class="trainer-skills-tags">
+            <span class="skill-pill">Probability</span>
+            <span class="skill-pill">Hypothesis Testing</span>
+            <span class="skill-pill">R / Python</span>
+          </div>
+
+          <a href="signup.html" class="btn btn-outline btn-sm" style="width: 100%;">View Trainer Profile</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       10. FEEDBACK (Dedicated Section)
+       ========================================================================= -->
+  <section class="section" id="feedback">
+    <div class="container">
+      <div class="section-header reveal">
+        <div class="section-tag">
+          <span class="section-tag-dot"></span>
+          <span>Community Feedback</span>
+        </div>
+        <h2 class="section-title">Your Feedback Helps <span class="text-gradient">Learning Improve.</span></h2>
+        <p class="section-desc">
+          Share your experience with courses, trainers and learning resources to help improve the learning ecosystem.
+        </p>
+      </div>
+
+      <div class="feedback-container reveal">
+        <form id="feedbackForm">
+          <div style="text-align: center;">
+            <p style="font-weight: 600; font-size: 1.1rem; color: #fff;">How was your experience?</p>
+            <div class="feedback-stars">
+              <button type="button" class="star-btn active" data-rating="1" aria-label="1 Star">&#9733;</button>
+              <button type="button" class="star-btn active" data-rating="2" aria-label="2 Stars">&#9733;</button>
+              <button type="button" class="star-btn active" data-rating="3" aria-label="3 Stars">&#9733;</button>
+              <button type="button" class="star-btn active" data-rating="4" aria-label="4 Stars">&#9733;</button>
+              <button type="button" class="star-btn active" data-rating="5" aria-label="5 Stars">&#9733;</button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="feedbackCourse">Select Course / Trainer</label>
+            <select class="form-select" id="feedbackCourse">
+              <option value="Machine Learning Fundamentals">Machine Learning Fundamentals (Dr. Rajesh Sharma)</option>
+              <option value="Statistics for Data Science">Statistics for Data Science (Vikram Kulkarni)</option>
+              <option value="Advanced SQL & Optimization">Advanced SQL & Optimization (Ananya Chopra)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="feedbackText">Write your feedback</label>
+            <textarea class="form-textarea" id="feedbackText" rows="4" placeholder="Share your experience regarding course pacing, trainer responsiveness, or assessment difficulty..."></textarea>
+          </div>
+
+          <button type="submit" class="btn btn-primary" style="width: 100%;">Submit Feedback</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       11. CERTIFICATES (Dedicated Section with 3D Mockup)
+       ========================================================================= -->
+  <section class="section" id="certificates">
+    <div class="container">
+      <div class="section-header reveal">
+        <div class="section-tag">
+          <span class="section-tag-dot"></span>
+          <span>Verified Credentials</span>
+        </div>
+        <h2 class="section-title">Celebrate Your <span class="text-gradient">Achievements.</span></h2>
+        <p class="section-desc">
+          Track completed learning activities and showcase the certificates and achievements you earn along your journey.
+        </p>
+      </div>
+
+      <div class="certificate-preview-wrap reveal">
+        <!-- 3D Digital Certificate Card -->
+        <div class="certificate-card-3d">
+          <div class="cert-watermark">SIH</div>
+          
+          <div class="cert-header">
+            <div class="cert-brand">CAPACITY CONNECT</div>
+            <span class="cert-verified-tag">&#10003; Cryptographically Verified</span>
+          </div>
+
+          <p style="font-size: 0.85rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.1em;">
+            Official Certification of Competency
+          </p>
+          <h3 class="cert-title">Certificate of Completion</h3>
+
+          <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 4px;">This is proudly awarded to:</p>
+          <h4 class="cert-recipient">Aarav Sharma</h4>
+          
+          <p class="cert-course">
+            For successfully closing targeted competency gaps and completing <strong style="color:#fff;">Python Fundamentals &amp; Machine Learning Mastery</strong>.
+          </p>
+
+          <div class="cert-footer">
+            <div class="cert-meta-item">
+              <p>Verification Code</p>
+              <strong>CC-2026-8942-X7</strong>
+            </div>
+
+            <div class="cert-meta-item">
+              <p>Issue Date</p>
+              <strong>September 2026</strong>
+            </div>
+
+            <div class="cert-seal" title="Verified Gold Seal">
+              &#10004;
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       12. RE-ASSESSMENT (Dedicated Section)
+       ========================================================================= -->
+  <section class="section" id="reassessment">
+    <div class="container">
+      <div class="section-header reveal">
+        <div class="section-tag">
+          <span class="section-tag-dot"></span>
+          <span>Continuous Evaluation</span>
+        </div>
+        <h2 class="section-title">Measure Your <span class="text-gradient">Growth.</span></h2>
+        <p class="section-desc">
+          Learning doesn't stop after completing a course. Reassess your competency and see how far you've progressed.
+        </p>
+        <h3 style="font-size: 1.35rem; color: #fff; margin-top: 18px; font-weight: 700;">
+          "From identifying a gap to closing it."
+        </h3>
+      </div>
+
+      <div class="reassess-pipeline reveal">
+        <!-- Stage 1: Before -->
+        <div class="reassess-step-card tilt-element">
+          <span style="font-size: 0.75rem; font-weight: 800; color: var(--accent-rose); letter-spacing: 0.1em; text-transform: uppercase;">
+            BEFORE
+          </span>
+          <h4 style="font-size: 1.2rem; margin: 12px 0 6px;">Machine Learning</h4>
+          <div style="font-size: 2.2rem; font-weight: 800; color: var(--accent-rose);">35%</div>
+          <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 6px;">Baseline Competency</p>
+        </div>
+
+        <div class="reassess-arrow">&rarr;</div>
+
+        <!-- Stage 2: Learning Intervention -->
+        <div class="reassess-step-card tilt-element" style="border-color: rgba(59, 130, 246, 0.4); background: rgba(59, 130, 246, 0.08);">
+          <span style="font-size: 0.75rem; font-weight: 800; color: var(--primary-light); letter-spacing: 0.1em; text-transform: uppercase;">
+            LEARNING ACCELERATION
+          </span>
+          <div style="margin: 14px 0; display: flex; flex-direction: column; gap: 8px;">
+            <div style="background: rgba(255,255,255,0.06); padding: 8px; border-radius: 8px; font-size: 0.85rem;"> Target Course Completion</div>
+            <div style="background: rgba(255,255,255,0.06); padding: 8px; border-radius: 8px; font-size: 0.85rem;"> Curated Practice Resources</div>
+            <div style="background: rgba(255,255,255,0.06); padding: 8px; border-radius: 8px; font-size: 0.85rem;"> 1-on-1 Trainer Mentorship</div>
+          </div>
+        </div>
+
+        <div class="reassess-arrow">&rarr;</div>
+
+        <!-- Stage 3: After -->
+        <div class="reassess-step-card tilt-element">
+          <span style="font-size: 0.75rem; font-weight: 800; color: var(--accent-emerald); letter-spacing: 0.1em; text-transform: uppercase;">
+            AFTER RE-ASSESSMENT
+          </span>
+          <h4 style="font-size: 1.2rem; margin: 12px 0 6px;">Machine Learning</h4>
+          <div style="font-size: 2.2rem; font-weight: 800; color: var(--accent-emerald);" id="reassessAfterText">68%</div>
+          <div class="meter-bar" style="margin-top: 10px;">
+            <div class="meter-fill" id="reassessAfterFill" style="width: 35%; background: var(--grad-emerald);"></div>
+          </div>
+          <div class="growth-badge-large">+33% Competency Growth!</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       13. HOW CAPACITY CONNECT WORKS (8-Step Visual Process)
+       ========================================================================= -->
+  <section class="section" id="how-it-works">
+    <div class="container">
+      <div class="section-header reveal">
+        <div class="section-tag">
+          <span class="section-tag-dot"></span>
+          <span>End-to-End Workflow</span>
+        </div>
+        <h2 class="section-title">How <span class="text-gradient">CAPACITY CONNECT</span> Works</h2>
+        <p class="section-desc">
+          An intuitive step-by-step roadmap turning skills analysis into career readiness.
+        </p>
+      </div>
+
+      <div class="workflow-grid reveal">
+        <!-- Step 1 -->
+        <div class="workflow-card">
+          <div class="workflow-number">01</div>
+          <h4 class="workflow-title">Create Profile</h4>
+          <p class="workflow-desc">Sign up as a trainee, trainer, or administrator with custom domain preferences.</p>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="workflow-card">
+          <div class="workflow-number">02</div>
+          <h4 class="workflow-title">Take Assessment</h4>
+          <p class="workflow-desc">Complete diagnostic subject-wise MCQ assessments to establish baseline metrics.</p>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="workflow-card">
+          <div class="workflow-number">03</div>
+          <h4 class="workflow-title">Map Competencies</h4>
+          <p class="workflow-desc">Visualize strong, developing, and underperforming areas across multi-domain matrices.</p>
+        </div>
+
+        <!-- Step 4 -->
+        <div class="workflow-card">
+          <div class="workflow-number">04</div>
+          <h4 class="workflow-title">Identify Skill Gaps</h4>
+          <p class="workflow-desc">Benchmark current competency directly against industry job roles & requirements.</p>
+        </div>
+
+        <!-- Step 5 -->
+        <div class="workflow-card">
+          <div class="workflow-number">05</div>
+          <h4 class="workflow-title">Get Recommendations</h4>
+          <p class="workflow-desc">Receive tailored course suggestions and connect with top matched mentors.</p>
+        </div>
+
+        <!-- Step 6 -->
+        <div class="workflow-card">
+          <div class="workflow-number">06</div>
+          <h4 class="workflow-title">Learn</h4>
+          <p class="workflow-desc">Access learning materials, attend sessions, and build practical skills.</p>
+        </div>
+
+        <!-- Step 7 -->
+        <div class="workflow-card">
+          <div class="workflow-number">07</div>
+          <h4 class="workflow-title">Re-Assess</h4>
+          <p class="workflow-desc">Take follow-up assessments to validate skill acquisition and closing of gaps.</p>
+        </div>
+
+        <!-- Step 8 -->
+        <div class="workflow-card">
+          <div class="workflow-number">08</div>
+          <h4 class="workflow-title">Track Improvement</h4>
+          <p class="workflow-desc">Earn verified certificates, track analytics, and continually elevate competency.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       14. FINAL CALL TO ACTION (CTA)
+       ========================================================================= -->
+  <section class="section" id="cta">
+    <div class="container">
+      <div class="cta-banner reveal">
+        <h2 class="cta-title">Turn Your Skill Gaps Into Opportunities.</h2>
+        <p class="cta-desc">
+          Discover your strengths. Identify your gaps. Learn with purpose. Grow with confidence.
+        </p>
+
+        <div class="cta-buttons">
+          <a href="signup.html" class="btn btn-primary btn-lg">Create Your Profile &rarr;</a>
+          <a href="login.html" class="btn btn-secondary btn-lg">Already a member? Login</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       15. PROFESSIONAL MULTI-COLUMN FOOTER
+       ========================================================================= -->
+  <footer class="footer" id="about">
+    <div class="container">
+      <div class="footer-top">
+        <!-- Col 1: Brand & Bio -->
+        <div class="footer-brand">
+          <a href="#hero" class="logo" style="margin-bottom: 12px;">
+            <div class="logo-icon">
+              <svg viewBox="0 0 24 24">
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+              </svg>
+            </div>
+            <span>CAPACITY CONNECT</span>
+          </a>
+          <p style="font-weight: 600; color: var(--primary-light); font-size: 0.95rem;">
+            "Learn. Build Skills. Connect Better."
+          </p>
+          <p>
+            A competency-driven platform connecting learners, trainers and organizations through smarter learning.
+          </p>
+          <div class="footer-socials">
+            <a href="#" class="social-link" aria-label="LinkedIn">
+              <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+            </a>
+            <a href="#" class="social-link" aria-label="Instagram">
+              <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+            </a>
+            <a href="#" class="social-link" aria-label="YouTube">
+              <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+            </a>
+            <a href="#" class="social-link" aria-label="GitHub">
+              <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+            </a>
+          </div>
+        </div>
+
+        <!-- Col 2: Platform -->
+        <div class="footer-col">
+          <h5>Platform</h5>
+          <ul class="footer-links">
+            <li><a href="#hero">Home</a></li>
+            <li><a href="#features">Features</a></li>
+            <li><a href="#how-it-works">How It Works</a></li>
+            <li><a href="#resources">Resources</a></li>
+            <li><a href="#features">Products</a></li>
+          </ul>
+        </div>
+
+        <!-- Col 3: Who We Serve -->
+        <div class="footer-col">
+          <h5>Who We Serve</h5>
+          <ul class="footer-links">
+            <li><a href="#who-can-use">Trainees</a></li>
+            <li><a href="#who-can-use">Trainers</a></li>
+            <li><a href="#who-can-use">Administrators</a></li>
+            <li><a href="#about">Our Team</a></li>
+          </ul>
+        </div>
+
+        <!-- Col 4: Company -->
+        <div class="footer-col">
+          <h5>Company</h5>
+          <ul class="footer-links">
+            <li><a href="#about">About</a></li>
+            <li><a href="#about">Our Team</a></li>
+            <li><a href="mailto:contact@capacityconnect.in">Contact Us</a></li>
+          </ul>
+        </div>
+
+        <!-- Col 5: Legal -->
+        <div class="footer-col">
+          <h5>Legal</h5>
+          <ul class="footer-links">
+            <li><a href="#">Terms &amp; Conditions</a></li>
+            <li><a href="#">Privacy Policy</a></li>
+            <li><a href="#">Accessibility</a></li>
+          </ul>
+        </div>
+
+        <!-- Col 6: Resources -->
+        <div class="footer-col" id="resources">
+          <h5>Resources</h5>
+          <ul class="footer-links">
+            <li><a href="#course-recommendation">Learning Resources</a></li>
+            <li><a href="#course-recommendation">Courses</a></li>
+            <li><a href="#mcq-assessments">Assessments</a></li>
+            <li><a href="#">Help Center</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Bottom Footer -->
+      <div class="footer-bottom">
+        <div>
+          &copy; 2026 CAPACITY CONNECT. All rights reserved. 
+        </div>
+        <div class="footer-legal-links">
+          <a href="#">Privacy Policy</a>
+          <a href="#">Terms</a>
+          <a href="#">Contact</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="js/script.js"></script>
+</body>
+</html>
