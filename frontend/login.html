@@ -167,7 +167,7 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
     localStorage.setItem('userEmail', user.Email);
 
     if (role === 'trainee') {
-        window.location.href = 'dashboard.html';
+        window.location.href = 'trainee-dashboard.html';
     } else if (role === 'trainer') {
         window.location.href = 'trainer-dashboard.html';
     } else if (role === 'admin') {
